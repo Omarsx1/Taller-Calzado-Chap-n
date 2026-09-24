@@ -52,25 +52,26 @@ export async function loadWarehouse(): Promise<WarehouseResult> {
     envMapIntensity: 0.6,
   });
 
+  // Paredes blancas (clean tech): pintura mate blanca sobre panel y lámina.
+  // Se conservan los normal/roughness maps para el relieve; sin color map el
+  // muro lee blanco puro aunque la luz del atardecer lo tiña de ámbar.
   const metalMat = new THREE.MeshStandardMaterial({
     name: 'warehouse_metal_pbr',
-    map: loadTexture('metal_color.jpg', true),
     normalMap: loadTexture('metal_nrm.png'),
     roughnessMap: loadTexture('metal_rough.jpg'),
-    metalnessMap: loadTexture('metal_met.jpg'),
-    roughness: 0.45,
-    metalness: 0.85,
-    envMapIntensity: 1.1,
+    color: 0xf3f1ec,
+    roughness: 0.5,
+    metalness: 0.22,
+    envMapIntensity: 0.9,
   });
 
   const wallsMat = new THREE.MeshStandardMaterial({
     name: 'warehouse_walls_pbr',
-    map: loadTexture('walls_color.jpg', true),
     normalMap: loadTexture('walls_nrm.png'),
     roughnessMap: loadTexture('walls_rough.jpg'),
-    metalnessMap: loadTexture('walls_met.jpg'),
-    roughness: 0.65,
-    metalness: 0.3,
+    color: 0xf6f4ef,
+    roughness: 0.82,
+    metalness: 0.04,
     envMapIntensity: 0.7,
     side: THREE.DoubleSide,
   });
