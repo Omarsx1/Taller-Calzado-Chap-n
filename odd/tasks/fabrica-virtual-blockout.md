@@ -277,8 +277,74 @@ brain directory, set `LOGO_SHOT_DIR` to that path when running the script.
 - Logo legibility at the pedestal badge scale (36 cm) is unproven visually.
 - The bundle warning from T6 persists (689 kB raw).
 
+## Work unit T8 — Ambiente exterior de atardecer (cielo, montañas 360°, iluminación)
+
+Authorized by user: "Mejora el ambiente exterior que se vea como atardecer, y que se vean bien las
+montañas y el exterior, mejora a una alta calidad que se vea realista." Not yet committed.
+
+- [x] **T8a — `src/factory/sky.ts` rewritten**: sunset equirectangular map (indigo→violet→gold
+  gradient, sun disc at u = 0.34 / ~15° elevation with three additive blooms, golden low stratus
+  clustered at the sun, violet high wisps, warm horizon haze, recoloured volcano silhouettes,
+  dark dusk nadir, seeded dither grain against ACES banding). The sun placement is documented as
+  the single source of truth for T8b/T8c.
+- [x] **T8b — `src/factory/landscape.ts` rewritten**: two flat ridge planes → three concentric
+  open cylinders (r = 560/400/300, BackSide, alpha silhouettes) giving a 360° mountain horizon
+  for every orbit angle. Ridge profiles sum integer-frequency triangular waves (seamless wrap,
+  deterministic via mulberry32) with a sharpness exponent for angular peaks; crest rim light and
+  a warm/cool body wash follow the sun azimuth (ring-u 0.41); the base 14% alpha-fades into the
+  terrain. Plus a 760 m ground disc (dusk earth, receives shadows) closing the apron-to-mountain
+  gap. Dispose covers geometries, textures and materials.
+- [x] **T8c — `src/factory/hall.ts` `setupLighting`**: daylight rig → golden-hour rig. Key sun
+  `0xffa257` at 1.8 placed 300 units along the sky-sun direction (155, 78, −245), shadow frustum
+  widened to ±140/±65 with 4096² map for the long evening shadows; hemisphere amber-over-warm-violet
+  0.75; ambient `0xffdcc0` 0.38; fills re-tinted (violet dusk fill, warm horizon bounce).
+- [x] **T8d — `src/factory/FactoryTourStage.ts`**: fog `0xdae6f0 60..420` → `0xe9a873 100..900`
+  (warm haze eats the rings and terrain, interior crisp), camera far 450 → 1500 (rings at 560 m),
+  exposure 0.76 → 0.85, `environmentIntensity` 0.75 → 0.9 (sunset IBL is dimmer overall).
+- [x] **T8e — `src/factory/WorkshopExpansion.ts`**: apron concrete textures get `anisotropy = 8`
+  and repeat 24×20 → 16×14 (grazing-angle moiré under the warm light).
+- [x] **T8f — `scripts/verify_sunset.mjs`** (new): headless-Chrome CDP harness capturing the
+  initial view, the panorámica and two orbit steps toward the sun; collects console errors.
+  Configurable via `CHROME_BIN` / `APP_URL` / `SUNSET_SHOT_DIR`, defaults to `.artifacts/sunset`.
+
+### T8 verification evidence (orchestrator-run, rendered screenshots in `.artifacts/sunset/`)
+
+Command: `npm run build` -> success after every iteration (`dist/assets/index-*.js` ~693 kB).
+Command: `APP_URL=http://localhost:5178/ node scripts/verify_sunset.mjs` -> 4 PNGs, "No console
+errors" on every run.
+Visual pass (visual-judge subagent unavailable in-session; screenshots inspected directly),
+three iterations with defects found and fixed:
+
+1. Mountain rings read as smooth rolling dunes ("wavy curtains"). Cause: the low-frequency
+   triangle octave dominated and `tri` alone is too round. Fixed with a sharpness exponent per
+   octave (`tri(u*f + phase) ** s`, s 1.2–2.6) and rebalanced amplitudes so mid/high octaves cut
+   the crest detail.
+2. Building shadow clipped by a razor-straight edge mid-apron; shadowed asphalt crushed to black.
+   Cause: 13°-elevation shadow frustum (±80) too small for the true shadow length. Fixed: sun
+   raised to 15°, frustum ±140/±65 near 150/far 520, ambient 0.2 → 0.38, hemisphere 0.5 → 0.75,
+   ground disc lifted `0x453647` → `0x524052`.
+3. Hard straight seam where ring bases met the terrain. Fixed with the bottom-14% alpha fade
+   (destination-out) so the silhouettes melt into the fogged ground.
+4. Apron tiling moiré at grazing angles. Fixed with anisotropy 8 + coarser repeat.
+
+Final state: sunset gradient + sun glow render from the default view and on orbit; three ridge
+layers read as mountains with sun-kissed crests; long shadows stretch across the apron; interior
+stays readable (warm dusk tint, LEDs and white machines intact).
+
+### Open after T8
+
+- The sky-texture volcano silhouettes are almost fully hidden behind the 360° rings from ground
+  views; harmless, but they could be removed if the rings stay.
+- Shadow-map texel is ~6.8 cm (±140 at 4096²); PCFSoft hides it, but a cascaded setup would be
+  needed if close-up exterior shadow quality ever matters.
+- Draw-call delta NOT measured precisely (2 planes → 3 cylinders + disc ≈ +1 net, pending the
+  same browser-console read flagged in T6/T7).
+- Work unit not committed; `scripts/verify_sunset.mjs` and the code changes are in the working
+  tree pending the user's explicit commit/push request.
+
 ## Next step
 
-Visual tuning pass with the user in the browser (T5 + T6 + T7: contrast, hotspot overlap, expansion
-framing and medallion placement), then T4: port `src/factory/*` into Calzado Chapín as `/fabrica`
-with lazy `import()` on viewport, sliced as chained PRs per zone.
+Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
+expansion framing, medallion placement and now the sunset grading), then T4: port
+`src/factory/*` into Calzado Chapín as `/fabrica` with lazy `import()` on viewport, sliced as
+chained PRs per zone.
