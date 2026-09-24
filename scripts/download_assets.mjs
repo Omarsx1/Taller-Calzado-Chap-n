@@ -192,20 +192,23 @@ async function stepDownloadSkyHDRI() {
   }
 
   const fileData = await apiRes.json();
-  const hdri2kInfo = fileData?.hdri?.['2k']?.hdr;
-
-  if (!hdri2kInfo?.url) {
-    throw new Error(`No se encontró URL para HDR 2K de ${hdriId}`);
-  }
-
-      const hdri4kInfo = fileData?.hdri?.['4k']?.hdr;
+  const hdri4kInfo = fileData?.hdri?.['4k']?.hdr;
 
   if (!hdri4kInfo?.url) {
     throw new Error(`No se encontró URL para HDR 4K de ${hdriId}`);
   }
 
   const buffer = await downloadFile(hdri4kInfo.url, `HDRI Puresky 4K (${hdriId})`);
-  validateHDR(buffer, hdri2kInfo.md5);
+
+  // Poly Haven regenera ocasionalmente los 4K y el md5 del API queda
+  // obsoleto: se valida el formato Radiance y un tamaño mínimo en lugar
+  // del md5.
+  if (!buffer.subarray(0, 10).toString().startsWith('#?RADIANCE')) {
+    throw new Error(`El HDRI 4K de ${hdriId} no tiene formato Radiance válido`);
+  }
+  if (buffer.length < 10 * 1024 * 1024) {
+    throw new Error(`El HDRI 4K de ${hdriId} es sospechosamente pequeño (${buffer.length} bytes)`);
+  }
 
   const destPath = path.join(DIR_TEXTURES, 'golden_hour_puresky_4k.hdr');
   fs.writeFileSync(destPath, buffer);
@@ -213,7 +216,79 @@ async function stepDownloadSkyHDRI() {
 }
 
 /**
- * Step 2: Download PBR Textures (Concrete & Metal) from Poly Haven API
+ * Step 2b: Download Ground PBR Textures (asphalt, grass, soil, gravel) — 1K
+ * with diffuse / normal / roughness, used by streets, park and planters.
+ */
+async function stepDownloadGroundTextures() {
+  log.header('Paso 2b: Descarga y Validación de Texturas de Suelo 1K (Poly Haven)');
+
+  const groundTasks = [
+    {
+      id: 'asphalt_02',
+      name: 'Asfalto (calles)',
+      maps: [
+        { key: 'Diffuse', filename: 'asphalt_02_diff_1k.jpg', label: 'Color / Diffuse' },
+        { key: 'nor_gl', filename: 'asphalt_02_nor_gl_1k.jpg', label: 'Normal (OpenGL)' },
+        { key: 'Rough', filename: 'asphalt_02_rough_1k.jpg', label: 'Roughness' },
+      ],
+    },
+    {
+      id: 'aerial_grass_rock',
+      name: 'Pasto (parque)',
+      maps: [
+        { key: 'Diffuse', filename: 'aerial_grass_rock_diff_1k.jpg', label: 'Color / Diffuse' },
+        { key: 'nor_gl', filename: 'aerial_grass_rock_nor_gl_1k.jpg', label: 'Normal (OpenGL)' },
+        { key: 'Rough', filename: 'aerial_grass_rock_rough_1k.jpg', label: 'Roughness' },
+      ],
+    },
+    {
+      id: 'farm_soil',
+      name: 'Tierra (macetas)',
+      maps: [
+        { key: 'Diffuse', filename: 'farm_soil_diff_1k.jpg', label: 'Color / Diffuse' },
+        { key: 'nor_gl', filename: 'farm_soil_nor_gl_1k.jpg', label: 'Normal (OpenGL)' },
+        { key: 'Rough', filename: 'farm_soil_rough_1k.jpg', label: 'Roughness' },
+      ],
+    },
+    {
+      id: 'gravel',
+      name: 'Gravilla (senderos)',
+      maps: [
+        { key: 'Diffuse', filename: 'gravel_diff_1k.jpg', label: 'Color / Diffuse' },
+        { key: 'nor_gl', filename: 'gravel_nor_gl_1k.jpg', label: 'Normal (OpenGL)' },
+        { key: 'Rough', filename: 'gravel_rough_1k.jpg', label: 'Roughness' },
+      ],
+    },
+  ];
+
+  for (const task of groundTasks) {
+    log.info(`Consultando metadatos para textura de suelo: ${task.name} (${task.id})...`);
+    const apiRes = await fetch(`https://api.polyhaven.com/files/${task.id}`);
+    if (!apiRes.ok) {
+      throw new Error(`Error consultando API para ${task.id}: ${apiRes.statusText}`);
+    }
+
+    const fileData = await apiRes.json();
+
+    for (const map of task.maps) {
+      const mapInfo = fileData?.[map.key]?.['1k']?.jpg;
+      if (!mapInfo?.url) {
+        log.warn(`No se encontró mapa 1K JPG para ${task.id} -> ${map.key}`);
+        continue;
+      }
+
+      const buffer = await downloadFile(mapInfo.url, `${task.name} - ${map.label}`);
+      validateJPEG(buffer, mapInfo.md5);
+
+      const destPath = path.join(DIR_TEXTURES, map.filename);
+      fs.writeFileSync(destPath, buffer);
+      log.success(`Mapa de suelo guardado: ${path.relative(ROOT_DIR, destPath)} (${(buffer.length / 1024).toFixed(1)} KB)`);
+    }
+  }
+}
+
+/**
+ * Step 3: Download CC0 Industrial 3D Models (.glb) from Kenney CC0 Library
  */
 async function stepDownloadPBRTextures() {
   log.header('Paso 2: Descarga y Validación de Texturas PBR 2K (Poly Haven)');
@@ -266,9 +341,6 @@ async function stepDownloadPBRTextures() {
   }
 }
 
-/**
- * Step 3: Download CC0 Industrial 3D Models (.glb) from Kenney CC0 Library
- */
 async function stepDownload3DModels() {
   log.header('Paso 3: Descarga y Validación de Modelos 3D .glb CC0 (Kenney)');
 
@@ -365,6 +437,7 @@ async function main() {
 
     await stepDownloadHDRI();
     await stepDownloadSkyHDRI();
+    await stepDownloadGroundTextures();
     await stepDownloadPBRTextures();
     await stepDownload3DModels();
     stepReport();

@@ -38,30 +38,6 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-/** Mown-grass texture: green base with speckle noise. */
-function makeGrassTexture(): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 256;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('[factory] 2D canvas context unavailable for grass');
-  ctx.fillStyle = '#4d5e33';
-  ctx.fillRect(0, 0, 256, 256);
-  const rng = mulberry32(0x6ea5);
-  for (let i = 0; i < 5200; i++) {
-    const x = rng() * 256;
-    const y = rng() * 256;
-    const l = 0.24 + rng() * 0.22;
-    ctx.fillStyle = `hsl(${78 + rng() * 22}, ${26 + rng() * 16}%, ${l * 100}%)`;
-    ctx.fillRect(x, y, 1.6, 2.6);
-  }
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  return texture;
-}
-
 /** Warm radial pool of lamp light on the ground. */
 function makePoolTexture(): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
@@ -98,10 +74,31 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
 
   /* ------------------------------------------------------------ surfaces */
 
-  const asphaltMat = track(
-    new THREE.MeshStandardMaterial({ color: 0x24282f, roughness: 0.95, metalness: 0.02 }),
-  );
-  const walkMat = track(new THREE.MeshStandardMaterial({ color: 0xb3a48d, roughness: 1 }));
+  // Texturas PBR reales (Poly Haven, CC0) descargadas por
+  // scripts/download_assets.mjs: asfalto, pasto, gravilla. Cada superficie
+  // recibe su propio clon con repeat según su tamaño.
+  const texLoader = new THREE.TextureLoader();
+
+  /** Texturas enlosables (difusa SRGB + normal + rugosidad) por superficie. */
+  const pbrMaterial = (base: string, rx: number, ry: number): THREE.MeshStandardMaterial => {
+    const mk = (file: string, srgb: boolean) => {
+      const t = track(texLoader.load(`/assets/textures/${file}`));
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(rx, ry);
+      if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+      return t;
+    };
+    return track(
+      new THREE.MeshStandardMaterial({
+        map: mk(`${base}_diff_1k.jpg`, true),
+        normalMap: mk(`${base}_nor_gl_1k.jpg`, false),
+        roughnessMap: mk(`${base}_rough_1k.jpg`, false),
+        roughness: 1,
+        metalness: 0.02,
+      }),
+    );
+  };
+
   const sidewalkMat = track(
     new THREE.MeshStandardMaterial({ color: 0xc9c4b9, roughness: 0.9 }),
   );
@@ -126,14 +123,14 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
     return mesh;
   };
 
-  // Perimeter streets + connectors (asphalt over the concrete apron)
-  groundPlane(240, 10, CENTER_X, 96, STREET_Y, asphaltMat);
-  groundPlane(240, 10, CENTER_X, -96, STREET_Y, asphaltMat);
-  groundPlane(10, 192, -110, -5, STREET_Y, asphaltMat);
-  groundPlane(10, 192, 118, -5, STREET_Y, asphaltMat);
-  groundPlane(10, 43, -71, 69.5, STREET_Y, asphaltMat);
-  groundPlane(10, 43, 79, 69.5, STREET_Y, asphaltMat);
-  groundPlane(10, 71, CENTER_X, -55.5, STREET_Y, asphaltMat);
+  // Perimeter streets + connectors (asphalt PBR over the concrete apron)
+  groundPlane(240, 10, CENTER_X, 96, STREET_Y, pbrMaterial('asphalt_02', 80, 3.3));
+  groundPlane(240, 10, CENTER_X, -96, STREET_Y, pbrMaterial('asphalt_02', 80, 3.3));
+  groundPlane(10, 192, -110, -5, STREET_Y, pbrMaterial('asphalt_02', 3.3, 64));
+  groundPlane(10, 192, 118, -5, STREET_Y, pbrMaterial('asphalt_02', 3.3, 64));
+  groundPlane(10, 43, -71, 69.5, STREET_Y, pbrMaterial('asphalt_02', 3.3, 14.3));
+  groundPlane(10, 43, 79, 69.5, STREET_Y, pbrMaterial('asphalt_02', 3.3, 14.3));
+  groundPlane(10, 71, CENTER_X, -55.5, STREET_Y, pbrMaterial('asphalt_02', 3.3, 23.7));
 
   // Raised sidewalks (curb included in the slab) along every street
   const sidewalk = (len: number, x: number, z: number, alongZ: boolean): void => {
@@ -214,13 +211,10 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
   }
 
   // Grass: park + verge strips (disjoint rectangles tiling the apron margins)
-  const grassTex = track(makeGrassTexture());
   const grassPatch = (w: number, d: number, x: number, z: number): void => {
-    const tex = grassTex.clone();
-    tex.needsUpdate = true;
-    tex.repeat.set(w / 7, d / 7);
-    track(tex);
-    const mat = track(new THREE.MeshStandardMaterial({ map: tex, roughness: 1 }));
+    // Tinte verde sobre la textura seca para leer como prado natural
+    const mat = pbrMaterial('aerial_grass_rock', w / 2.2, d / 2.2);
+    mat.color.set(0x9cb56e);
     groundPlane(w, d, x, z, GRASS_Y, mat);
   };
   grassPatch(216, 38, CENTER_X, 71); // south park
@@ -230,9 +224,9 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
   grassPatch(20, 240, -126, 0); // west verge
   grassPatch(20, 240, 134, 0); // east verge
 
-  // Walking paths through the green areas
-  groundPlane(200, 2.6, CENTER_X, 70, PATH_Y, walkMat);
-  groundPlane(200, 2.6, CENTER_X, -26, PATH_Y, walkMat);
+  // Walking paths through the green areas (gravel)
+  groundPlane(200, 2.6, CENTER_X, 70, PATH_Y, pbrMaterial('gravel', 66, 0.9));
+  groundPlane(200, 2.6, CENTER_X, -26, PATH_Y, pbrMaterial('gravel', 66, 0.9));
 
   /* --------------------------------------------------------------- trees */
 

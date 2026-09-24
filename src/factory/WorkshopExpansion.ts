@@ -704,10 +704,24 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
   group.add(apronMesh);
 
   // Exterior asphalt loading bay access road with yellow guide markings
+  // (real asphalt PBR, Poly Haven CC0)
+  const roadTexLoader = new THREE.TextureLoader();
+  const roadMap = roadTexLoader.load('/assets/textures/asphalt_02_diff_1k.jpg');
+  roadMap.colorSpace = THREE.SRGBColorSpace;
+  roadMap.wrapS = roadMap.wrapT = THREE.RepeatWrapping;
+  roadMap.repeat.set(64, 12.8);
+  const roadNor = roadTexLoader.load('/assets/textures/asphalt_02_nor_gl_1k.jpg');
+  roadNor.wrapS = roadNor.wrapT = THREE.RepeatWrapping;
+  roadNor.repeat.set(64, 12.8);
+  const roadRough = roadTexLoader.load('/assets/textures/asphalt_02_rough_1k.jpg');
+  roadRough.wrapS = roadRough.wrapT = THREE.RepeatWrapping;
+  roadRough.repeat.set(64, 12.8);
   const roadMat = new THREE.MeshStandardMaterial({
-    color: 0x1f242c,
-    roughness: 0.9,
-    metalness: 0.05,
+    map: roadMap,
+    normalMap: roadNor,
+    roughnessMap: roadRough,
+    roughness: 1,
+    metalness: 0.02,
   });
   const roadMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 32), roadMat);
   roadMesh.rotateX(-Math.PI / 2);
