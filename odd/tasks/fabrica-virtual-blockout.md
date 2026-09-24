@@ -237,8 +237,48 @@ the verifier of composition, lighting and camera framing (same caveat as T5).
   logged once after the first frame — read it in the browser to close criterion 6.
 - The 686 kB bundle (>500 kB) warning from three.js remains open; code-splitting is deferred.
 
+## Work unit T7 — Branding corporativo (medallones 3D + logo UI)
+
+Authorized by user ("sube los cambios"). Pushed to `origin/main` (`f42bc65..58e2cb1`).
+
+- [x] **T7a — `src/factory/BrandingLogo.ts`** (new, 176 lines) `987b606`: `createLogoMedallion`
+  (extruded slate bezel, brushed-metal rim, alpha-cut logo face, Clean Tech halo ring) and
+  `buildFactoryBranding`, placing 5 medallions — exterior main facade, interior central truss,
+  hero pedestal badge, west logistics wall (Almacén) and east expansion wall (Fase 2).
+- [x] **T7b — Wire + UI**: `FactoryTourStage.ts` adds the branding group and registers it as a
+  hotspot occluder; `index.html` shows `public/logo.webp` in the topbar; `src/styles.css` styles
+  `.topbar__identity` / `.topbar__logo`.
+- [x] **T7c — Asset**: `public/logo.webp` (75 KB, valid WebP, passed to the texture loader).
+- [x] **T7d — Verification harness** `58e2cb1`: `scripts/verify_logos.mjs` drives headless Chrome
+  over CDP to screenshot the pedestal and exterior views. Made portable before committing.
+
+### T7 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success, `dist/assets/index-*.js` 689.56 kB raw / 181.49 kB gzip,
+CSS 4.20 kB (re-run on the frozen commit before delivery).
+Command: `node --check scripts/verify_logos.mjs` -> syntax OK.
+Command: `git push origin main` -> `f42bc65..58e2cb1`, branch back in sync.
+NOT verified: the rendered medallions. Placement, halo intensity and logo legibility need a real
+browser; the user is the visual verifier (same caveat as T5 / T6).
+
+### Deviation recorded (T7d)
+
+`scripts/verify_logos.mjs` originally hardcoded the Chrome binary path and a personal output
+directory (`/Users/<user>/.gemini/antigravity/brain/<uuid>/`). That would only run on one machine
+and leaks a local path, so before committing it was rewritten to read `CHROME_BIN`, `APP_URL` and
+`LOGO_SHOT_DIR`, defaulting to the macOS Chrome path, `localhost:5173` and the project-local
+`.artifacts/logos` (now gitignored). If the antigravity workflow reads screenshots from the old
+brain directory, set `LOGO_SHOT_DIR` to that path when running the script.
+
+### Open after T7
+
+- Five medallions add draw calls and materials; the delta was NOT measured. Read
+  `renderer.info.render.calls|triangles` in the browser alongside the T6 number.
+- Logo legibility at the pedestal badge scale (36 cm) is unproven visually.
+- The bundle warning from T6 persists (689 kB raw).
+
 ## Next step
 
-Visual tuning pass with the user in the browser (T5 + T6: contrast, hotspot overlap, expansion
-framing), then T4: port `src/factory/*` into Calzado Chapín as `/fabrica` with lazy `import()` on
-viewport, sliced as chained PRs per zone.
+Visual tuning pass with the user in the browser (T5 + T6 + T7: contrast, hotspot overlap, expansion
+framing and medallion placement), then T4: port `src/factory/*` into Calzado Chapín as `/fabrica`
+with lazy `import()` on viewport, sliced as chained PRs per zone.
