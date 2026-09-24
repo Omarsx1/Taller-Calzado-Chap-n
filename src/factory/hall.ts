@@ -96,37 +96,44 @@ export function createLedStrip(width: number): THREE.Mesh {
   return new THREE.Mesh(geometry, ledStripMat);
 }
 
-/** Professional Studio Key / Fill / Ambient lighting rig. */
+/**
+ * Golden-hour Key / Fill / Ambient lighting rig.
+ *
+ * The key is the low sunset sun; its azimuth/elevation match the sun painted
+ * in `sky.ts` (u = 0.34, ~15° up → world direction (0.52, 0.26, -0.82)) and
+ * the rim-lit crests in `landscape.ts`. It sits far along the light direction
+ * so the shadow frustum spans the 93 m building and its long evening shadows.
+ */
 export function setupLighting(scene: THREE.Scene): void {
-  // Balanced hemisphere light (clean daylight sky bounce, warm floor bounce)
-  const hemisphere = new THREE.HemisphereLight(0xf2f8fc, 0xdcd6cb, 0.55);
+  // Golden-hour hemisphere: amber sky dome over warm dusk ground bounce
+  const hemisphere = new THREE.HemisphereLight(0xff9a58, 0x463c50, 0.75);
 
-  // Soft ambient fill
-  const ambient = new THREE.AmbientLight(0xffffff, 0.2);
+  // Soft warm ambient fill lifts the long dusk shadows off pure black
+  const ambient = new THREE.AmbientLight(0xffdcc0, 0.38);
 
-  // Main directional sunlight entering through windows and roof skylights
-  const key = new THREE.DirectionalLight(0xfffaec, 1.4);
-  key.position.set(8, 16, 6);
+  // Low sunset sun casting long shadows across the apron
+  const key = new THREE.DirectionalLight(0xffa257, 1.8);
+  key.position.set(155, 78, -245);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.camera.left = -20;
-  key.shadow.camera.right = 20;
-  key.shadow.camera.top = 16;
-  key.shadow.camera.bottom = -16;
-  key.shadow.camera.near = 1;
-  key.shadow.camera.far = 45;
+  key.shadow.mapSize.set(4096, 4096);
+  key.shadow.camera.left = -140;
+  key.shadow.camera.right = 140;
+  key.shadow.camera.top = 65;
+  key.shadow.camera.bottom = -65;
+  key.shadow.camera.near = 150;
+  key.shadow.camera.far = 520;
   key.shadow.camera.updateProjectionMatrix();
-  key.shadow.bias = -0.0003;
-  key.shadow.normalBias = 0.02;
+  key.shadow.bias = -0.0002;
+  key.shadow.normalBias = 0.05;
 
-  // Cool window fill from north facade
-  const fillCool = new THREE.DirectionalLight(0xdbeaf6, 0.45);
-  fillCool.position.set(-10, 10, -8);
+  // Violet dusk fill from the anti-sun sky
+  const fillCool = new THREE.DirectionalLight(0x8a8fd8, 0.42);
+  fillCool.position.set(-30, 16, 10);
   fillCool.castShadow = false;
 
-  // Warm fill from south warehouse entrance
-  const fillWarm = new THREE.DirectionalLight(0xffeedb, 0.35);
-  fillWarm.position.set(6, 8, 10);
+  // Warm horizon bounce wrapping the shaded facades
+  const fillWarm = new THREE.DirectionalLight(0xffa06a, 0.3);
+  fillWarm.position.set(12, 6, 24);
   fillWarm.castShadow = false;
 
   scene.add(hemisphere, ambient, key, fillCool, fillWarm);
