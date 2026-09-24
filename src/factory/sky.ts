@@ -44,13 +44,13 @@ const HIGH_WISPS: ReadonlyArray<{ x: number; y: number; rx: number; ry: number }
 
 /** Mid-altitude rose-grey streaks, stretched by perspective near the sun. */
 const MID_STREAKS: ReadonlyArray<{ x: number; y: number; rx: number; ry: number }> = [
-  { x: 90, y: 396, rx: 140, ry: 11 },
+  { x: 110, y: 396, rx: 110, ry: 11 },
   { x: 360, y: 412, rx: 190, ry: 13 },
   { x: 660, y: 390, rx: 230, ry: 15 },
   { x: 980, y: 404, rx: 270, ry: 17 },
   { x: 1300, y: 386, rx: 210, ry: 14 },
   { x: 1620, y: 410, rx: 240, ry: 15 },
-  { x: 1910, y: 392, rx: 180, ry: 12 },
+  { x: 1900, y: 392, rx: 140, ry: 12 },
 ];
 
 /** Low golden stratus, clustered around the sun and clear of the disc. */
@@ -66,7 +66,7 @@ const LOW_STRATUS: ReadonlyArray<{ x: number; y: number; rx: number; ry: number 
 const COOL_STRATUS: ReadonlyArray<{ x: number; y: number; rx: number; ry: number }> = [
   { x: 250, y: 462, rx: 210, ry: 10 },
   { x: 1480, y: 470, rx: 230, ry: 10 },
-  { x: 1800, y: 482, rx: 250, ry: 9 },
+  { x: 1780, y: 482, rx: 240, ry: 9 },
 ];
 
 /** mulberry32: tiny deterministic PRNG (dither grain, silhouette jitter). */
@@ -220,10 +220,12 @@ export function createSkyTexture(): THREE.CanvasTexture {
   ctx.fillRect(SUN_X - 24, SUN_Y - 24, 48, 48);
 
   // 7. Broad horizon glow hugging the horizon line, strongest at the sun.
-  const horizonGlow = ctx.createRadialGradient(SUN_X, HORIZON + 6, 0, SUN_X, HORIZON + 6, 1000);
-  horizonGlow.addColorStop(0, 'rgba(255,166,96,0.40)');
-  horizonGlow.addColorStop(0.5, 'rgba(255,150,90,0.16)');
-  horizonGlow.addColorStop(1, 'rgba(255,150,90,0)');
+  // Radius stays under the distance to the texture edges so the equirect
+  // wrap (x = 0 / 2048) stays seamless.
+  const horizonGlow = ctx.createRadialGradient(SUN_X, HORIZON + 6, 0, SUN_X, HORIZON + 6, 660);
+  horizonGlow.addColorStop(0, 'rgba(255, 166, 96, 0.40)');
+  horizonGlow.addColorStop(0.5, 'rgba(255, 150, 90, 0.16)');
+  horizonGlow.addColorStop(1, 'rgba(255, 150, 90, 0)');
   ctx.fillStyle = horizonGlow;
   ctx.fillRect(0, HORIZON - 140, WIDTH, 300);
   ctx.globalCompositeOperation = 'source-over';
