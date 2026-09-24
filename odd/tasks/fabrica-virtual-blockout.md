@@ -639,6 +639,30 @@ Command: `npm run build` -> success; `npm run download-assets` -> valida las 4 t
 Capturas `sunset_5_elevada.png` / `audit_1_fachada.png`: calles y parque con textura real,
 senderos de gravilla, macetas con tierra.
 
+## Work unit T22 — Bodega, oficina de gerencia y sanitarios + árboles llenos
+
+Authorized by user: "Los arboles deben verse reales, primero analiza y ve como incluir una
+bodega o almacén, oficina para el gerente y sanitarios". Not yet committed.
+
+Análisis de espacio libre (con las medidas T10/T18): el concreto libre está en el cuadrante SE
+(x 112..144, z 48..120), el corredor oeste (x -116..-104) y la franja sur junto al andén
+(z 48..52). El parque y las franjas de pasto cubren el resto de márgenes.
+
+- [x] **T22a — `src/factory/buildings.ts`** (nuevo): tres edificios de apoyo estilo clean tech
+  (muros 0xf6f4ef, techos oscuros, puertas andenizadoras, ventanales, rótulos con textura de
+  cartel): bodega 20x24 m con techo a dos aguas (cumbrera 8.2 m) y 2 puertas al norte en el
+  cuadrante SE (134, 64); oficina de gerencia 10x5 m junto al estacionamiento (-16, 51.5) con
+  ventanales al parque; sanitarios 4x3 m al borde del estacionamiento (-30, 17.75).
+- [x] **T22b — Cableado**: `FactoryTourStage.ts` agrega `createSupportBuildings()` con dispose.
+- [x] **T22c — Árboles más reales**: copas de 4 blobs por árbol (falda ancha + bajo + medio +
+  copa) con variación de tono por instancia — dejan de leer como chupetes.
+
+### T22 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/bodega_se.png` (bodega junto a
+la calle arborizada), `oficina_sanitarios.png` (sanitarios junto a la fachada) y
+`sunset_5_elevada.png` (conjunto del predio con el volumen nuevo).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
