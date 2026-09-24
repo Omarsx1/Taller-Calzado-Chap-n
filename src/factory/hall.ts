@@ -253,15 +253,19 @@ export function createHall(): THREE.Group {
     }
   }
 
-  // 3. Biophilic indoor planters framing the clean-tech production line
+  // 3. Biophilic indoor planters framing the clean-tech production line.
+  // Placed at the centre of each structural bay — the columns sit at
+  // x ±3.89/±11.47/±19.05/±26.83/±34.41 on the z ±5.62 rows, so a planter on
+  // a column X would be swallowed by it.
   const planterPositions: ReadonlyArray<readonly [number, number]> = [
-    [-9.0, -5.6],
-    [-4.5, -5.6],
+    [-30.62, -5.6],
+    [-15.26, -5.6],
     [0.0, -5.6],
-    [4.5, -5.6],
-    [9.0, -5.6],
-    [-6.5, 5.6],
-    [4.5, 5.6],
+    [15.26, -5.6],
+    [30.62, -5.6],
+    [-7.68, 5.6],
+    [0.0, 5.6],
+    [7.68, 5.6],
   ];
   for (const [px, pz] of planterPositions) {
     const planter = createPlanter(1.8, 0.45);
