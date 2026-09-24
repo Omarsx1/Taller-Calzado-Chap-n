@@ -116,8 +116,8 @@ export function setupLighting(scene: THREE.Scene): void {
   key.position.set(155, 78, -245);
   key.castShadow = true;
   key.shadow.mapSize.set(4096, 4096);
-  key.shadow.camera.left = -140;
-  key.shadow.camera.right = 140;
+  key.shadow.camera.left = -155;
+  key.shadow.camera.right = 155;
   key.shadow.camera.top = 65;
   key.shadow.camera.bottom = -65;
   key.shadow.camera.near = 150;

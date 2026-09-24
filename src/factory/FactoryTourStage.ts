@@ -9,6 +9,7 @@ import {
 } from './factory.config';
 import { HotspotLayer } from './FactoryHotspots';
 import { createHall, setupLighting } from './hall';
+import { createGrounds } from './grounds';
 import { createLandscape } from './landscape';
 import { uvStripMat } from './materials';
 import { loadShoeAssets } from './ShoeModels';
@@ -122,6 +123,9 @@ export function initFactoryTour(): () => void {
 
   const landscape = createLandscape();
   scene.add(landscape.group);
+
+  const grounds = createGrounds();
+  scene.add(grounds.group);
 
   let warehouseDisposer: (() => void) | null = null;
 
@@ -343,6 +347,7 @@ export function initFactoryTour(): () => void {
       }
     });
     landscape.dispose();
+    grounds.dispose();
     if (warehouseDisposer) warehouseDisposer();
     disposeSkyTexture(skyTexture);
     environment.dispose();
