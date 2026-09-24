@@ -110,12 +110,13 @@ export function createShoeMesh(
   mesh.scale.setScalar(0.0011);
 
   // Lay flat on its sole:
-  // In the original CAD/Blender mesh, X is the height (sole to instep), Y is length (heel to toe), Z is width.
-  // Rotation (0, -PI/2, PI/2) correctly places sole flat on table (normal pointing down), instep up, and toes pointing forward (-Z).
-  mesh.rotation.set(0, -Math.PI / 2, Math.PI / 2);
+  // In the original CAD/Blender mesh, the sole slopes at 27.25 degrees in the X-Y plane.
+  // Rotation (-Math.PI / 2 + 0.4756, -Math.PI / 2, 0) perfectly levels the heel and ball of the foot horizontal (diff < 0.005mm).
+  mesh.rotation.set(-Math.PI / 2 + 0.4756, -Math.PI / 2, 0);
 
-  // Elevation offset so the bottom of the sole rests directly at local Y = 0
-  mesh.position.y = 0.0772;
+  // Elevation offset so the bottom contact surface rests directly flush at local Y = 0
+  // (lowest vertex is at -21.468mm, which at scale 0.0011 is -0.023615m)
+  mesh.position.y = 0.02362;
 
   group.add(mesh);
   return group;

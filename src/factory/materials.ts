@@ -4,9 +4,12 @@ import {
   createFloorNormalMap,
   createGuatemalanTextileNormalMap,
   createGuatemalanTextileTexture,
+  createHazardStripeTexture,
   createLastTechnicalTexture,
+  createPedestrianWalkwayTexture,
   createPolishedEpoxyFloorTexture,
   createRubberSoleNormalMap,
+  createShoeBoxTexture,
   createWoodTexture,
 } from './proceduralTextures';
 
@@ -207,3 +210,46 @@ export const planterPotMat = new THREE.MeshStandardMaterial({
   roughness: 0.82,
   metalness: 0.05,
 });
+
+/** Yellow & black diagonal industrial safety hazard perimeter demarcation */
+export const hazardStripeMat = new THREE.MeshStandardMaterial({
+  map: createHazardStripeTexture(),
+  roughness: 0.65,
+  metalness: 0.05,
+});
+
+/** High-visibility green pedestrian thoroughfare path */
+export const walkwayMat = new THREE.MeshStandardMaterial({
+  map: createPedestrianWalkwayTexture(),
+  roughness: 0.55,
+  metalness: 0.08,
+});
+
+/** Recycled kraft cardboard shoe packaging box */
+export const cardboardBoxMat = new THREE.MeshStandardMaterial({
+  map: createShoeBoxTexture(),
+  roughness: 0.88,
+  metalness: 0.0,
+});
+
+/** Rough pine wood for industrial Euro-pallets */
+export const palletWoodMat = new THREE.MeshStandardMaterial({
+  color: 0xd4a872,
+  roughness: 0.86,
+  metalness: 0.01,
+});
+
+/** High-visibility industrial safety yellow (guardrails, bollards, cranes) */
+export const safetyYellowMat = new THREE.MeshStandardMaterial({
+  color: 0xf59e0b,
+  roughness: 0.42,
+  metalness: 0.25,
+});
+
+/** Emergency fire equipment red (fire extinguishers, alarms) */
+export const fireExtinguisherMat = new THREE.MeshStandardMaterial({
+  color: 0xd32f2f,
+  roughness: 0.25,
+  metalness: 0.45,
+});
+

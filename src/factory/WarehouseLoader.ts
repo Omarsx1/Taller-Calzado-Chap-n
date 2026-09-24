@@ -139,7 +139,7 @@ export async function loadWarehouse(): Promise<WarehouseResult> {
   const box = new THREE.Box3().setFromObject(rawGroup);
   const center = new THREE.Vector3();
   box.getCenter(center);
-  rawGroup.position.x = -center.x;
+  rawGroup.position.x = -center.x + 3.825;
   rawGroup.position.y = -box.min.y;
   rawGroup.position.z = -center.z;
   rawGroup.updateMatrixWorld(true);

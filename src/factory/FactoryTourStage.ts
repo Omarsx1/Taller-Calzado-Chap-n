@@ -14,6 +14,7 @@ import { uvStripMat } from './materials';
 import { loadShoeAssets } from './ShoeModels';
 import { createSkyTexture, disposeSkyTexture } from './sky';
 import { loadWarehouse } from './WarehouseLoader';
+import { buildWorkshopExpansion } from './WorkshopExpansion';
 import { buildZones, updateWithRealShoes } from './zones';
 
 /**
@@ -82,21 +83,22 @@ export function initFactoryTour(): () => void {
   // Atmospheric perspective: fades the far end of the hall and the exterior ridges
   // into the sky haze. `near` stays beyond typical interior distances so the factory
   // floor is untouched.
-  scene.fog = new THREE.Fog(0xdae6f0, 45, 260);
+  // Atmospheric perspective: fades the distant mountain ridges while keeping the full 93m factory crisp
+  scene.fog = new THREE.Fog(0xdae6f0, 60, 420);
 
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 160);
-  camera.position.set(3.4, 3.6, 9.6);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 450);
+  camera.position.set(0.0, 3.8, 10.4);
 
   const controls = new OrbitControls(camera, canvas);
-  controls.target.set(0.0, 1.1, 1.2);
+  controls.target.set(0.0, 1.1, 1.8);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
   controls.enablePan = true;
   controls.enableZoom = true;
   controls.enableRotate = true;
-  controls.minDistance = 1.2;
-  controls.maxDistance = 24;
-  controls.maxPolarAngle = Math.PI / 2 - 0.05;
+  controls.minDistance = 1.0;
+  controls.maxDistance = 135; // Allows smooth scroll back to view the entire 93-meter factory and grounds
+  controls.maxPolarAngle = Math.PI / 2 - 0.02; // Can view down at building from elevated angles
   controls.screenSpacePanning = true;
   controls.autoRotate = false;
   controls.autoRotateSpeed = 0.55;
@@ -111,15 +113,19 @@ export function initFactoryTour(): () => void {
   const zones = buildZones();
   scene.add(zones.group);
 
+  const expansion = buildWorkshopExpansion();
+  scene.add(expansion.group);
+
   const landscape = createLandscape();
   scene.add(landscape.group);
 
   let warehouseDisposer: (() => void) | null = null;
 
-  // Load authentic warehouse architecture and shoe models concurrently
+  // Load authentic warehouse architecture, shoe models, and expansion equipment concurrently
   Promise.all([
     loadWarehouse(),
     loadShoeAssets(),
+    expansion.loadModels(),
   ])
     .then(([warehouseResult, shoesReady]) => {
       if (warehouseResult) {
@@ -136,8 +142,8 @@ export function initFactoryTour(): () => void {
       if (loading) loading.hidden = true;
     });
 
-  // Hotspot occluders: machine bodies and station surfaces
-  const occluders: THREE.Object3D[] = [...zones.occluders];
+  // Hotspot occluders: machine bodies, racks, and station surfaces
+  const occluders: THREE.Object3D[] = [...zones.occluders, expansion.group];
 
   /* ------------------------------------------------------------- camera fly */
 

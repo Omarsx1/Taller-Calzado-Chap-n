@@ -343,3 +343,157 @@ export function createLastTechnicalTexture(): THREE.CanvasTexture {
   texture.needsUpdate = true;
   return texture;
 }
+
+/** 7. Industrial 45-degree yellow and black safety hazard stripe texture */
+export function createHazardStripeTexture(): THREE.CanvasTexture {
+  const { canvas, ctx } = createCanvas(256, 256);
+
+  ctx.fillStyle = '#f59e0b'; // Safety Amber Yellow
+  ctx.fillRect(0, 0, 256, 256);
+
+  ctx.fillStyle = '#18181b'; // Dark Zinc / Black
+  const stripeWidth = 32;
+
+  ctx.save();
+  ctx.rotate(-Math.PI / 4);
+  for (let x = -384; x < 512; x += stripeWidth * 2) {
+    ctx.fillRect(x, -384, stripeWidth, 768);
+  }
+  ctx.restore();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** 8. High-visibility green pedestrian factory thoroughfare with white border lines */
+export function createPedestrianWalkwayTexture(): THREE.CanvasTexture {
+  const { canvas, ctx } = createCanvas(512, 128);
+
+  // Industrial epoxy green surface
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(0, 0, 512, 128);
+
+  // Subtle non-slip diamond grain
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+  for (let x = 0; x < 512; x += 16) {
+    for (let y = 0; y < 128; y += 16) {
+      ctx.fillRect(x, y, 4, 4);
+    }
+  }
+
+  // Crisp continuous white safety demarcation border lines
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(0, 0, 512, 10);
+  ctx.fillRect(0, 118, 512, 10);
+
+  // Directional pedestrian arrows along walkway
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  for (let x = 64; x < 512; x += 160) {
+    ctx.beginPath();
+    ctx.moveTo(x - 14, 52);
+    ctx.lineTo(x, 64);
+    ctx.lineTo(x - 14, 76);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** 9. Authentic recycled kraft shoe box packaging with Calzado Chapín logo and specs */
+export function createShoeBoxTexture(sizeLabel = 'TALLA 41'): THREE.CanvasTexture {
+  const { canvas, ctx } = createCanvas(512, 256);
+
+  // Unbleached kraft corrugated cardboard
+  ctx.fillStyle = '#c59d6e';
+  ctx.fillRect(0, 0, 512, 256);
+
+  // Fibrous cardboard speckles
+  ctx.fillStyle = 'rgba(60, 40, 20, 0.08)';
+  for (let i = 0; i < 400; i++) {
+    const rx = Math.random() * 512;
+    const ry = Math.random() * 256;
+    ctx.fillRect(rx, ry, Math.random() * 3 + 1, Math.random() * 2 + 1);
+  }
+
+  // Industrial printed stamp (navy ink)
+  ctx.strokeStyle = '#1b2a3a';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(24, 24, 464, 208);
+
+  ctx.fillStyle = '#1b2a3a';
+  ctx.font = '900 24px sans-serif';
+  ctx.fillText('CALZADO CHAPÍN', 42, 64);
+
+  ctx.font = '600 13px sans-serif';
+  ctx.fillText('MANUFACTURA SOSTENIBLE · HECHO EN GUATEMALA', 42, 88);
+  ctx.fillText('100% CAUCHO NATURAL DE PLANTACIÓN & ALGODÓN BIO', 42, 108);
+
+  // Biophilic Eco badge
+  ctx.strokeRect(42, 130, 160, 36);
+  ctx.font = 'bold 12px monospace';
+  ctx.fillText('CLEAN TECH · 0% PLÁSTICO', 48, 152);
+
+  // Size stamp box
+  ctx.strokeRect(360, 120, 108, 80);
+  ctx.font = '900 32px sans-serif';
+  ctx.fillText(sizeLabel, 372, 170);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** 10. Clean Tech industrial signboard with title and subtitle */
+export function createSignboardTexture(
+  title: string,
+  subtitle: string,
+  accentColor = '#f59e0b',
+): THREE.CanvasTexture {
+  const { canvas, ctx } = createCanvas(512, 256);
+
+  // Dark industrial slate background
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 512, 256);
+
+  // Accent colored top bar
+  ctx.fillStyle = accentColor;
+  ctx.fillRect(0, 0, 512, 18);
+
+  // White inner border
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(16, 32, 480, 208);
+
+  // Title text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 26px sans-serif';
+  ctx.fillText(title.toUpperCase(), 36, 92);
+
+  // Subtitle text
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '600 14px sans-serif';
+  ctx.fillText(subtitle, 36, 126);
+
+  // Factory footer
+  ctx.fillStyle = accentColor;
+  ctx.font = 'bold 13px monospace';
+  ctx.fillText('CALZADO CHAPÍN · PLANTA CENTRAL DE PRODUCCIÓN', 36, 198);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+

@@ -5,7 +5,14 @@
  * user-facing copy is Spanish; identifiers and comments stay English.
  */
 
-export type ZoneId = 'textiles' | 'aparado' | 'moldeado';
+export type ZoneId =
+  | 'panoramica'
+  | 'almacen'
+  | 'textiles'
+  | 'aparado'
+  | 'moldeado'
+  | 'empaque'
+  | 'expansion';
 
 /** Camera framing used by `flyTo`. */
 export interface CameraView {
@@ -25,6 +32,16 @@ export interface HotspotDef {
 }
 
 export const HOTSPOTS = [
+  {
+    id: 'almacen',
+    zone: 'almacen',
+    eyebrow: 'Zona Oeste · Materias Primas',
+    title: 'Almacén de Lonas y Caucho Certificado',
+    body: 'Recepción y acopio de bobinas de lona de algodón orgánico teñido artesanalmente y fardos de caucho natural de plantación guatemalteca. El inventario se gestiona por lote para asegurar trazabilidad limpia de cada par.',
+    meta: '100% materias primas biodegradables',
+    anchor: [-26.0, 2.2, -6.5],
+    view: { position: [-22.0, 3.4, 4.5], target: [-26.0, 1.4, -4.5] },
+  },
   {
     id: 'telar',
     zone: 'textiles',
@@ -62,8 +79,8 @@ export const HOTSPOTS = [
     title: 'Cementado sin solventes',
     body: 'Las prensas neumáticas aplican presión uniforme para fijar la planta a la suela con adhesivo base agua. Al eliminar los solventes orgánicos, la emisión de compuestos volátiles dentro de la planta baja a prácticamente cero.',
     meta: 'Huella de carbono: −62 % frente al cementado tradicional',
-    anchor: [1.6, 2.6, 4.2],
-    view: { position: [1.6, 2.6, 0.8], target: [1.6, 1.0, 4.2] },
+    anchor: [1.2, 2.6, 3.8],
+    view: { position: [1.2, 2.6, 0.8], target: [1.2, 1.0, 3.8] },
   },
   {
     id: 'hormas',
@@ -72,8 +89,8 @@ export const HOTSPOTS = [
     title: 'Hormas ergonómicas 3D',
     body: 'Cada horma se modela a partir del arco plantar real del usuario. La adaptabilidad a la salud plantar significa menos presión en el talón y el metatarso, y menos descarte por devoluciones.',
     meta: 'Diseño validado sobre análisis de pisada',
-    anchor: [6.4, 3.1, 2.8],
-    view: { position: [3.4, 3.0, 0.2], target: [6.4, 1.3, 2.8] },
+    anchor: [6.2, 3.1, 2.8],
+    view: { position: [3.4, 3.0, 0.2], target: [6.2, 1.3, 2.8] },
   },
   {
     id: 'suelas',
@@ -82,8 +99,8 @@ export const HOTSPOTS = [
     title: 'Caucho natural, no plástico',
     body: 'La suela se vulcaniza con caucho natural de plantación certificada. Se degrada sin liberar microplásticos, a diferencia del EVA y el PVC que dominan el mercado de la chancla desechable.',
     meta: 'Sin microplásticos · vulcanizado de baja energía',
-    anchor: [-3.0, 1.5, 3.8],
-    view: { position: [-3.0, 2.4, 0.6], target: [-3.0, 0.8, 3.8] },
+    anchor: [-3.2, 1.5, 4.0],
+    view: { position: [-3.2, 2.4, 1.0], target: [-3.2, 0.8, 4.0] },
   },
   {
     id: 'chanclas',
@@ -92,13 +109,37 @@ export const HOTSPOTS = [
     title: 'Chanclas Chapín · Producto Terminado',
     body: 'El modelo final en 3D: chancla ergonómica elaborada con caucho natural vulcanizado, arco biomecánico y capellada textil tradicional. Cada par fusiona tecnología limpia con la herencia textil guatemalteca.',
     meta: 'Modelo 3D real exportado en .glb · 100% biodegradable',
-    anchor: [0.0, 1.4, 5.2],
-    view: { position: [0.0, 1.6, 6.4], target: [0.0, 0.95, 5.2] },
+    anchor: [0.0, 1.4, 5.8],
+    view: { position: [0.0, 1.35, 6.9], target: [0.0, 0.98, 5.8] },
+  },
+  {
+    id: 'empaque',
+    zone: 'empaque',
+    eyebrow: 'Zona Este · Control y Empaque',
+    title: 'Control de Calidad y Embalaje Circular',
+    body: 'Cada par terminado pasa por inspección de costuras, flexibilidad del arco y acabado superficial antes de ser embalado en cajas de cartón kraft 100% reciclado sin tintas plásticas ni grapas metálicas.',
+    meta: 'Empaque biodegradable con cero plástico',
+    anchor: [18.0, 2.0, -3.5],
+    view: { position: [14.0, 3.2, 3.5], target: [18.0, 1.3, -3.5] },
+  },
+  {
+    id: 'expansion',
+    zone: 'expansion',
+    eyebrow: 'Fase 2 · Área de Futura Expansión',
+    title: 'Crecimiento Sostenible del Taller',
+    body: 'Área reservada para la ampliación de la planta: próxima línea automatizada de prensado solar y laboratorio de reciclaje circular de calzado. El taller está diseñado para triplicar su capacidad manteniendo su compromiso artesanal y ambiental.',
+    meta: 'Infraestructura modular preparada para expansión limpia',
+    anchor: [36.0, 2.4, 0.0],
+    view: { position: [30.0, 4.2, 8.5], target: [38.0, 1.5, 0.0] },
   },
 ] as const satisfies readonly HotspotDef[];
 
 export const ZONE_VIEWS = {
-  textiles: { position: [-3.0, 5.4, 3.6], target: [-8.0, 1.2, -3.0] },
-  aparado: { position: [-0.4, 5.0, 2.2], target: [-0.4, 1.0, -4.0] },
-  moldeado: { position: [0.0, 5.6, 9.6], target: [2.0, 1.0, 3.6] },
+  panoramica: { position: [3.8, 17.5, 58.0], target: [3.8, 3.5, 0.0] },
+  almacen: { position: [-22.0, 3.8, 7.5], target: [-26.0, 1.4, -3.5] },
+  textiles: { position: [-6.8, 3.2, 1.2], target: [-8.2, 1.2, -3.2] },
+  aparado: { position: [-0.4, 3.2, 0.4], target: [-0.4, 1.1, -4.2] },
+  moldeado: { position: [0.0, 4.0, 10.2], target: [0.0, 1.1, 4.0] },
+  empaque: { position: [14.0, 3.8, 7.5], target: [18.0, 1.4, -3.5] },
+  expansion: { position: [30.0, 4.8, 12.0], target: [38.0, 1.6, 0.0] },
 } as const satisfies Record<ZoneId, CameraView>;

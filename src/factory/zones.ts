@@ -6,13 +6,11 @@ import {
   buttonGreenMat,
   buttonRedMat,
   canvasMat,
-  crepeRubberMat,
   darkSteelMat,
   emissivePanelMat,
   glassMat,
   jadeMat,
   rawCanvasMat,
-  rubberMat,
   steelMat,
   uvStripMat,
   woodMat,
@@ -40,7 +38,8 @@ export interface HeddleRef {
 
 export interface ShoeSlots {
   pedestal: THREE.Group;
-  press: THREE.Group;
+  pressA: THREE.Group;
+  pressB: THREE.Group;
   tray: THREE.Group;
   oven: THREE.Group;
   table: THREE.Group;
@@ -146,74 +145,7 @@ const lastGeometry = buildLastGeometry();
 
 /* ------------------------------------------------------------------ FINISHED ERGONOMIC CHANCLA */
 
-/**
- * Builds an authentic assembled ergonomic sandal (chancla Chapín):
- * - Contoured dual-density sole (vulcanized rubber outsole + honey crepe footbed with arch support)
- * - Authentic Guatemalan woven cotton Y-strap with toe thong
- */
-function createFinishedChancla(): THREE.Group {
-  const chancla = new THREE.Group();
 
-  // 1. Contoured outsole (rubber)
-  const soleShape = new THREE.Shape();
-  soleShape.moveTo(0, -0.24);
-  soleShape.bezierCurveTo(0.08, -0.24, 0.09, -0.1, 0.09, 0.0);
-  soleShape.bezierCurveTo(0.1, 0.09, 0.11, 0.19, 0.07, 0.25);
-  soleShape.bezierCurveTo(0.04, 0.28, -0.02, 0.29, -0.05, 0.27);
-  soleShape.bezierCurveTo(-0.08, 0.25, -0.09, 0.19, -0.09, 0.14);
-  soleShape.bezierCurveTo(-0.09, 0.06, -0.05, -0.05, -0.06, -0.14);
-  soleShape.bezierCurveTo(-0.07, -0.21, -0.05, -0.24, 0, -0.24);
-
-  const outsoleGeo = new THREE.ExtrudeGeometry(soleShape, {
-    depth: 0.02,
-    bevelEnabled: true,
-    bevelSegments: 2,
-    bevelSize: 0.008,
-    bevelThickness: 0.008,
-  });
-  outsoleGeo.rotateX(Math.PI / 2);
-  const outsole = createMesh(outsoleGeo, rubberMat);
-  chancla.add(outsole);
-
-  // 2. Midsole footbed (crepe rubber with arch support contour)
-  const footbedGeo = new THREE.ExtrudeGeometry(soleShape, {
-    depth: 0.025,
-    bevelEnabled: true,
-    bevelSegments: 3,
-    bevelSize: 0.012,
-    bevelThickness: 0.012,
-  });
-  footbedGeo.rotateX(Math.PI / 2);
-  const footbed = createMesh(footbedGeo, crepeRubberMat);
-  footbed.position.y = 0.022;
-  chancla.add(footbed);
-
-  // 3. Ergonomic Y-strap in authentic Guatemalan woven textile
-  const strapLeftCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 0.045, 0.14), // Toe thong anchor
-    new THREE.Vector3(-0.06, 0.085, 0.03), // Arch curve
-    new THREE.Vector3(-0.085, 0.04, -0.08), // Medial side anchor
-  ]);
-  const strapRightCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 0.045, 0.14),
-    new THREE.Vector3(0.06, 0.085, 0.03),
-    new THREE.Vector3(0.085, 0.04, -0.08), // Lateral side anchor
-  ]);
-
-  const strapGeoL = new THREE.TubeGeometry(strapLeftCurve, 16, 0.016, 8, false);
-  const strapGeoR = new THREE.TubeGeometry(strapRightCurve, 16, 0.016, 8, false);
-  const strapL = createMesh(strapGeoL, canvasMat);
-  const strapR = createMesh(strapGeoR, canvasMat);
-  chancla.add(strapL, strapR);
-
-  // 4. Toe thong post and metal rivet
-  const postGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.04, 8);
-  const post = createMesh(postGeo, darkSteelMat);
-  post.position.set(0, 0.045, 0.14);
-  chancla.add(post);
-
-  return chancla;
-}
 
 /* ------------------------------------------------------------------ ZONA A: TEXTILES Y CORTE */
 
@@ -521,18 +453,9 @@ function createWorkTable(): { group: THREE.Group; slot: THREE.Group } {
   led.position.set(0, 0.81, 0.58);
   group.add(led);
 
-  // Work in progress: finished chanclas on the table
+  // Work in progress: finished chanclas slot on the table
   const slot = new THREE.Group();
   slot.name = 'TableShoeSlot';
-  const chanclaA = createFinishedChancla();
-  chanclaA.position.set(-1.4, 0.9, 0.2);
-  chanclaA.rotation.y = 0.35;
-
-  const chanclaB = createFinishedChancla();
-  chanclaB.position.set(0.8, 0.9, 0.25);
-  chanclaB.rotation.y = -0.5;
-
-  slot.add(chanclaA, chanclaB);
   group.add(slot);
   return { group, slot };
 }
@@ -595,9 +518,6 @@ function createPress(): { group: THREE.Group; slot: THREE.Group } {
   // Finished chancla slot inside press
   const pressSlot = new THREE.Group();
   pressSlot.name = 'PressShoeSlot';
-  const pressedChancla = createFinishedChancla();
-  pressedChancla.position.set(0, 0.5, 0);
-  pressSlot.add(pressedChancla);
   group.add(pressSlot);
 
   // Safety acrylic guard
@@ -721,19 +641,6 @@ function createSoleTray(): { group: THREE.Group; slot: THREE.Group } {
   const slot = new THREE.Group();
   slot.name = 'TrayShoeSlot';
 
-  // 8 vulcanized rubber sole blanks with tread normal map
-  const columnX = [-0.75, -0.25, 0.25, 0.75];
-  const columnZ = [-0.35, 0.35];
-
-  for (const x of columnX) {
-    for (const z of columnZ) {
-      const chancla = createFinishedChancla();
-      chancla.position.set(x, 0.6, z);
-      chancla.rotation.y = (Math.random() - 0.5) * 0.2;
-      slot.add(chancla);
-    }
-  }
-
   const led = createLedStrip(2.3);
   led.position.set(0, 0.44, 0.78);
   group.add(led, slot);
@@ -765,9 +672,6 @@ function createUvOven(): { group: THREE.Group; slot: THREE.Group } {
 
   const slot = new THREE.Group();
   slot.name = 'OvenShoeSlot';
-  const curingChancla = createFinishedChancla();
-  curingChancla.position.set(0, 0.58, 0);
-  slot.add(curingChancla);
 
   group.add(top, sideL, sideR, floor, uvStrip, belt, slot);
   return { group, slot };
@@ -792,9 +696,6 @@ function createShowcasePedestal(): { group: THREE.Group; slot: THREE.Group } {
   slot.name = 'PedestalShoeSlot';
   slot.position.set(0, 0.93, 0);
 
-  const fallback = createFinishedChancla();
-  slot.add(fallback);
-
   group.add(base, lightTop, rim, slot);
   return { group, slot };
 }
@@ -805,40 +706,41 @@ function buildMoldingZone(
 ): {
   rack: THREE.Group;
   pedestalSlot: THREE.Group;
-  pressSlot: THREE.Group;
+  pressSlotA: THREE.Group;
+  pressSlotB: THREE.Group;
   traySlot: THREE.Group;
   ovenSlot: THREE.Group;
 } {
-  const { group: pressA, slot: pressSlot } = createPress();
-  pressA.position.set(1.8, 0, 3.8);
-  const { group: pressB } = createPress();
-  pressB.position.set(4.4, 0, 3.8);
+  const { group: pressA, slot: pressSlotA } = createPress();
+  pressA.position.set(1.2, 0, 3.8);
+  const { group: pressB, slot: pressSlotB } = createPress();
+  pressB.position.set(3.4, 0, 3.8);
   root.add(pressA, pressB);
-  addShadow(root, 1.8, 3.8, 2.0, 1.8, 0.6);
-  addShadow(root, 4.4, 3.8, 2.0, 1.8, 0.6);
+  addShadow(root, 1.2, 3.8, 2.0, 1.8, 0.6);
+  addShadow(root, 3.4, 3.8, 2.0, 1.8, 0.6);
 
   const rack = createLastRack();
-  rack.position.set(7.2, 0, 2.8);
+  rack.position.set(6.2, 0, 2.8);
   root.add(rack);
-  addShadow(root, 7.2, 2.8, 2.8, 2.8, 0.6);
+  addShadow(root, 6.2, 2.8, 2.8, 2.8, 0.6);
 
   const { group: tray, slot: traySlot } = createSoleTray();
-  tray.position.set(-3.8, 0, 4.0);
+  tray.position.set(-3.2, 0, 4.0);
   root.add(tray);
-  addShadow(root, -3.8, 4.0, 2.9, 1.9, 0.55);
+  addShadow(root, -3.2, 4.0, 2.9, 1.9, 0.55);
 
   const { group: oven, slot: ovenSlot } = createUvOven();
-  oven.position.set(-1.2, 0, 4.0);
+  oven.position.set(-1.0, 0, 4.0);
   root.add(oven);
-  addShadow(root, -1.2, 4.0, 3.1, 2.1, 0.55);
+  addShadow(root, -1.0, 4.0, 3.1, 2.1, 0.55);
 
   const { group: pedestal, slot: pedestalSlot } = createShowcasePedestal();
-  pedestal.position.set(1.8, 0, 6.4);
+  pedestal.position.set(0.0, 0, 5.8);
   root.add(pedestal);
-  addShadow(root, 1.8, 6.4, 1.3, 1.3, 0.5);
+  addShadow(root, 0.0, 5.8, 1.3, 1.3, 0.5);
 
   occluders.push(pressA, pressB, rack, tray, oven, pedestal);
-  return { rack, pedestalSlot, pressSlot, traySlot, ovenSlot };
+  return { rack, pedestalSlot, pressSlotA, pressSlotB, traySlot, ovenSlot };
 }
 
 /** Injects the authentic ShoesL.glb and ShoesR.glb models once loaded */
@@ -846,7 +748,7 @@ export function updateWithRealShoes(slots: ShoeSlots): void {
   // 1. Featured Hero Showcase Pedestal (authentic pair, both left and right, presented prominently)
   slots.pedestal.clear();
   const heroPair = createShoePair(defaultShoeMaterial, 0.20);
-  heroPair.rotation.y = 0.15; // Dynamic 3/4 hero presentation angle
+  heroPair.rotation.y = Math.PI + 0.25; // Dynamic 3/4 hero presentation facing the visitor
   slots.pedestal.add(heroPair);
 
   // 2. Sole Staging Tray in Zone C: Mass-production batch of 8 pairs (16 sandals total, left & right)
@@ -856,40 +758,45 @@ export function updateWithRealShoes(slots: ShoeSlots): void {
   // Front row: 4 pairs of classic vulcanized plantation rubber
   for (const x of colX) {
     const pair = createShoePair(defaultShoeMaterial, 0.20);
-    pair.position.set(x, 0.58, 0.35);
+    pair.position.set(x, 0.60, 0.35);
     slots.tray.add(pair);
   }
 
   // Back row: 4 pairs of signature Guatemalan jade bio-polymer
   for (const x of colX) {
     const pair = createShoePair(jadeShoeMaterial, 0.20);
-    pair.position.set(x, 0.58, -0.35);
+    pair.position.set(x, 0.60, -0.35);
     slots.tray.add(pair);
   }
 
-  // 3. Cementing Press in Zone C (real shoe inside pressing platen)
-  slots.press.clear();
-  const pressed = createShoeMesh('left', defaultShoeMaterial);
-  pressed.position.set(0, 0.48, 0);
-  slots.press.add(pressed);
+  // 3. Cementing Presses in Zone C (real shoes inside pressing platens)
+  slots.pressA.clear();
+  const pressedL = createShoeMesh('left', defaultShoeMaterial);
+  pressedL.position.set(0, 0.50, 0);
+  slots.pressA.add(pressedL);
+
+  slots.pressB.clear();
+  const pressedR = createShoeMesh('right', jadeShoeMaterial);
+  pressedR.position.set(0, 0.50, 0);
+  slots.pressB.add(pressedR);
 
   // 4. UV Curing Tunnel (real shoe on conveyor belt)
   slots.oven.clear();
   const ovenShoe = createShoeMesh('right', defaultShoeMaterial);
-  ovenShoe.position.set(0, 0.56, 0);
+  ovenShoe.position.set(0, 0.57, 0);
   slots.oven.add(ovenShoe);
 
   // 5. Aparado Workbench in Zone B: 3 pairs of chanclas being assembled
   slots.table.clear();
   const tablePairA = createShoePair(defaultShoeMaterial, 0.20);
-  tablePairA.position.set(-1.6, 0.88, 0.15);
+  tablePairA.position.set(-1.6, 0.90, 0.15);
   tablePairA.rotation.y = 0.2;
 
   const tablePairB = createShoePair(terracottaShoeMaterial, 0.20);
-  tablePairB.position.set(0.0, 0.88, 0.2);
+  tablePairB.position.set(0.0, 0.90, 0.2);
 
   const tablePairC = createShoePair(jadeShoeMaterial, 0.20);
-  tablePairC.position.set(1.6, 0.88, 0.15);
+  tablePairC.position.set(1.6, 0.90, 0.15);
   tablePairC.rotation.y = -0.25;
 
   slots.table.add(tablePairA, tablePairB, tablePairC);
@@ -904,11 +811,12 @@ export function buildZones(): ZoneBuild {
 
   buildTextilesZone(group, heddles, occluders);
   const tableSlot = buildAparadoZone(group, occluders);
-  const { rack, pedestalSlot, pressSlot, traySlot, ovenSlot } = buildMoldingZone(group, occluders);
+  const { rack, pedestalSlot, pressSlotA, pressSlotB, traySlot, ovenSlot } = buildMoldingZone(group, occluders);
 
   const shoeSlots: ShoeSlots = {
     pedestal: pedestalSlot,
-    press: pressSlot,
+    pressA: pressSlotA,
+    pressB: pressSlotB,
     tray: traySlot,
     oven: ovenSlot,
     table: tableSlot,
