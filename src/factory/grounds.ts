@@ -2,18 +2,22 @@ import * as THREE from 'three';
 import { darkSteelMat, woodMat } from './materials';
 
 /**
- * Site grounds for the Calzado Chapín tour: perimeter streets with dashed
- * center lines, street lamps (emissive heads + fake light pools) and a park
- * ring — grass, walking paths, benches and trees — that fills the empty
- * concrete margins around the 93 m building.
+ * Site grounds for the Calzado Chapín tour: perimeter streets with curbs,
+ * raised sidewalks, tactile strips, yellow center + white edge lines, zebra
+ * crossings, concrete utility poles with catenary power lines, street lamps
+ * (emissive heads + fake light pools) and a park ring — grass, walking paths,
+ * benches and trees — filling the margins around the 93 m building.
  *
- * Everything is procedural and instanced: trees, lamps and benches render in
- * a handful of draw calls, and placement is deterministic (seeded PRNG) so
- * the site is stable across reloads.
+ * Streets take after classic stylized street scenes: raised sidewalks with a
+ * yellow tactile band, solid yellow center line, white edge lines and power
+ * lines sagging between concrete poles — all tuned to the dusk palette.
+ *
+ * Everything is procedural and instanced (trees, lamps, benches, poles render
+ * in a handful of draw calls) and placement is deterministic (seeded PRNG).
  *
  * Layout uses the measured site: apron x -136..144 / z ±120 at y -0.015.
- * All ground decals are staggered in centimetres above it to avoid z-fighting
- * (apron -0.015 < grass 0.008 < streets 0.02 < paths 0.026 < lines 0.032).
+ * Ground decals are staggered in centimetres to avoid z-fighting (apron
+ * -0.015 < grass 0.008 < streets 0.02 < paths 0.026 < lines 0.032).
  */
 
 const CENTER_X = 3.8;
@@ -51,23 +55,6 @@ function makeGrassTexture(): THREE.CanvasTexture {
     ctx.fillStyle = `hsl(${78 + rng() * 22}, ${26 + rng() * 16}%, ${l * 100}%)`;
     ctx.fillRect(x, y, 1.6, 2.6);
   }
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  return texture;
-}
-
-/** Dashed center-line texture for the streets (one dash per tile). */
-function makeDashTexture(): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 32;
-  canvas.height = 128;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('[factory] 2D canvas context unavailable for dashes');
-  ctx.clearRect(0, 0, 32, 128);
-  ctx.fillStyle = 'rgba(233, 226, 210, 0.85)';
-  ctx.fillRect(8, 10, 16, 62);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.wrapS = THREE.RepeatWrapping;
@@ -115,6 +102,12 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
     new THREE.MeshStandardMaterial({ color: 0x24282f, roughness: 0.95, metalness: 0.02 }),
   );
   const walkMat = track(new THREE.MeshStandardMaterial({ color: 0xb3a48d, roughness: 1 }));
+  const sidewalkMat = track(
+    new THREE.MeshStandardMaterial({ color: 0xc9c4b9, roughness: 0.9 }),
+  );
+  const tactileMat = track(new THREE.MeshStandardMaterial({ color: 0xd9b13a, roughness: 0.8 }));
+  const centerLineMat = track(new THREE.MeshStandardMaterial({ color: 0xd9a237, roughness: 0.85 }));
+  const edgeLineMat = track(new THREE.MeshStandardMaterial({ color: 0xdad5c8, roughness: 0.9 }));
 
   const groundPlane = (
     w: number,
@@ -142,30 +135,83 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
   groundPlane(10, 43, 79, 69.5, STREET_Y, asphaltMat);
   groundPlane(10, 71, CENTER_X, -55.5, STREET_Y, asphaltMat);
 
-  // Dashed center lines (dash texture repeats along the street length)
-  const dashTex = track(makeDashTexture());
-  const dashMat = track(
-    new THREE.MeshStandardMaterial({
-      map: dashTex,
-      transparent: true,
-      roughness: 0.9,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-    }),
-  );
-  const dashLine = (length: number, x: number, z: number, rotY: number): void => {
-    dashTex.repeat.set(1, length / 6);
-    const geo = track(new THREE.PlaneGeometry(0.3, length));
+  // Raised sidewalks (curb included in the slab) along every street
+  const sidewalk = (len: number, x: number, z: number, alongZ: boolean): void => {
+    const geo = track(
+      alongZ ? new THREE.BoxGeometry(1.4, 0.14, len) : new THREE.BoxGeometry(len, 0.14, 1.4),
+    );
+    const mesh = new THREE.Mesh(geo, sidewalkMat);
+    mesh.position.set(x, 0.07, z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+  };
+  const tactile = (len: number, x: number, z: number, alongZ: boolean): void => {
+    const geo = track(
+      alongZ ? new THREE.BoxGeometry(0.26, 0.02, len) : new THREE.BoxGeometry(len, 0.02, 0.26),
+    );
+    const mesh = new THREE.Mesh(geo, tactileMat);
+    mesh.position.set(x, 0.15, z);
+    group.add(mesh);
+  };
+
+  // South street sidewalks (inner faces the park, outer the verge)
+  sidewalk(238, CENTER_X, 90.3, false);
+  tactile(236, CENTER_X, 90.875, false);
+  sidewalk(238, CENTER_X, 101.7, false);
+  tactile(236, CENTER_X, 101.125, false);
+  // North street sidewalks
+  sidewalk(238, CENTER_X, -90.3, false);
+  tactile(236, CENTER_X, -90.875, false);
+  sidewalk(238, CENTER_X, -102.2, false);
+  tactile(236, CENTER_X, -101.625, false);
+  // West + east street sidewalks
+  sidewalk(190, -104.3, -5, true);
+  tactile(188, -104.875, -5, true);
+  sidewalk(190, -115.7, -5, true);
+  tactile(188, -115.125, -5, true);
+  sidewalk(190, 112.3, -5, true);
+  tactile(188, 112.875, -5, true);
+  sidewalk(190, 123.7, -5, true);
+  tactile(188, 123.125, -5, true);
+
+  // Solid yellow center line + white edge lines on every street.
+  // `length` always runs along the street; rotY 0 = street along X.
+  const centerLine = (length: number, x: number, z: number, rotY: number): void => {
+    const geo = track(new THREE.PlaneGeometry(length, 0.25));
     geo.rotateX(-Math.PI / 2);
-    const mesh = new THREE.Mesh(geo, dashMat);
+    const mesh = new THREE.Mesh(geo, centerLineMat);
     mesh.position.set(x, LINE_Y, z);
     mesh.rotation.y = rotY;
     group.add(mesh);
   };
-  dashLine(236, CENTER_X, 96, 0);
-  dashLine(236, CENTER_X, -96, 0);
-  dashLine(188, -110, -5, Math.PI / 2);
-  dashLine(188, 118, -5, Math.PI / 2);
+  const edgeLine = (length: number, x: number, z: number, rotY: number): void => {
+    const geo = track(new THREE.PlaneGeometry(length, 0.15));
+    geo.rotateX(-Math.PI / 2);
+    const mesh = new THREE.Mesh(geo, edgeLineMat);
+    mesh.position.set(x, LINE_Y, z);
+    mesh.rotation.y = rotY;
+    group.add(mesh);
+  };
+  centerLine(236, CENTER_X, 96, 0);
+  edgeLine(236, CENTER_X, 91.4, 0);
+  edgeLine(236, CENTER_X, 100.6, 0);
+  centerLine(236, CENTER_X, -96, 0);
+  edgeLine(236, CENTER_X, -100.6, 0);
+  edgeLine(236, CENTER_X, -91.4, 0);
+  centerLine(188, -110, -5, Math.PI / 2);
+  edgeLine(188, -114.6, -5, Math.PI / 2);
+  edgeLine(188, -105.4, -5, Math.PI / 2);
+  centerLine(188, 118, -5, Math.PI / 2);
+  edgeLine(188, 113.4, -5, Math.PI / 2);
+  edgeLine(188, 122.6, -5, Math.PI / 2);
+
+  // Zebra crossings where the connectors meet the south street
+  for (const cx of [-71, 79]) {
+    for (let s = -2; s <= 2; s++) {
+      groundPlane(0.5, 8.4, cx + s * 1.05, 96, LINE_Y + 0.002, edgeLineMat);
+    }
+  }
 
   // Grass: park + verge strips (disjoint rectangles tiling the apron margins)
   const grassTex = track(makeGrassTexture());
@@ -338,6 +384,92 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
   });
   poles.castShadow = true;
   group.add(poles, arms, heads, pools);
+
+  /* --------------------------------------------- concrete utility poles */
+
+  // Power poles along the inner sidewalks of the two main streets, staggered
+  // between the street lamps, with 3 sagging wires per span.
+  const powerXs: number[] = [];
+  for (let x = -87; x <= 95; x += 26) powerXs.push(x);
+  const poleRows: Array<{ z: number; y: number }> = [
+    { z: 90.3, y: 0.14 },
+    { z: -90.3, y: 0.14 },
+  ];
+  const utilityGeo = track(new THREE.CylinderGeometry(0.13, 0.19, 7.2, 10));
+  const crossGeo = track(new THREE.BoxGeometry(0.09, 0.09, 1.5));
+  const utilityMat = track(
+    new THREE.MeshStandardMaterial({ color: 0xcfcbc2, roughness: 0.85 }),
+  );
+  const utilityCount = powerXs.length * poleRows.length;
+  const utilityInst = new THREE.InstancedMesh(utilityGeo, utilityMat, utilityCount);
+  const crossInst = new THREE.InstancedMesh(crossGeo, utilityMat, utilityCount * 2);
+  utilityInst.castShadow = true;
+  let u = 0;
+  for (const row of poleRows) {
+    for (const px of powerXs) {
+      quat.setFromEuler(euler.set(0, 0, 0));
+      pos.set(px, 3.6 + row.y, row.z);
+      scl.set(1, 1, 1);
+      m4.compose(pos, quat, scl);
+      utilityInst.setMatrixAt(u, m4);
+      for (let c = 0; c < 2; c++) {
+        pos.set(px, 6.55 + c * 0.55 + row.y, row.z);
+        m4.compose(pos, quat, scl);
+        crossInst.setMatrixAt(u * 2 + c, m4);
+      }
+      u += 1;
+    }
+  }
+  utilityInst.castShadow = true;
+  crossInst.castShadow = true;
+  group.add(utilityInst, crossInst);
+
+  // Catenary wires: 3 per span, sagging 0.55 m at midspan, as one LineSegments
+  // per street so the whole grid costs two draw calls.
+  const wireMat = track(new THREE.LineBasicMaterial({ color: 0x15171b }));
+  const wireHeights = [6.5, 6.9, 7.15];
+  const wireOffsets = [-0.55, 0, 0.55];
+  for (const row of poleRows) {
+    const points: number[] = [];
+    for (let s = 0; s < powerXs.length - 1; s++) {
+      const x0 = powerXs[s];
+      const x1 = powerXs[s + 1];
+      for (const h of wireHeights) {
+        for (const off of wireOffsets) {
+          const a = new THREE.Vector3(x0, h + row.y, row.z + off);
+          const b = new THREE.Vector3(x1, h + row.y, row.z + off);
+          const mid = a.clone().add(b).multiplyScalar(0.5);
+          mid.y -= 0.55;
+          const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+          const samples = curve.getPoints(10);
+          for (let i = 0; i < samples.length - 1; i++) {
+            points.push(samples[i].x, samples[i].y, samples[i].z);
+            points.push(samples[i + 1].x, samples[i + 1].y, samples[i + 1].z);
+          }
+        }
+      }
+    }
+    const wireGeo = track(new THREE.BufferGeometry());
+    wireGeo.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+    group.add(new THREE.LineSegments(wireGeo, wireMat));
+  }
+
+  /* ------------------------------------------------------ street signs */
+
+  const signPostGeo = track(new THREE.CylinderGeometry(0.04, 0.05, 2.6, 8));
+  const signBoardGeo = track(new THREE.BoxGeometry(1.15, 0.32, 0.05));
+  const signMat = track(
+    new THREE.MeshStandardMaterial({ color: 0x1e5aa8, roughness: 0.6 }),
+  );
+  for (const sx of [-104, 112]) {
+    const post = new THREE.Mesh(signPostGeo, darkSteelMat);
+    post.position.set(sx, 1.3, 89.6);
+    post.castShadow = true;
+    const board = new THREE.Mesh(signBoardGeo, signMat);
+    board.position.set(sx, 2.5, 89.6);
+    board.castShadow = true;
+    group.add(post, board);
+  }
 
   /* ------------------------------------------------------------- teardown */
 
