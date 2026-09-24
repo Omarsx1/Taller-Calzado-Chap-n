@@ -403,6 +403,29 @@ Command: `npm run build` -> success. Capturas de vistas Almacén/Fase 2/Inicial 
 `.artifacts/logo-audit/` tras el cambio: extintores visibles montados en columnas junto al
 pasillo, perfiles sobre durmientes, sin clips visibles.
 
+## Work unit T11 — Artefactos en vistas exteriores (z-fighting + borde del terreno)
+
+Authorized by user: al mover la cámara a vistas exteriores aparecen artefactos (parches
+escalonados en la zona sombreada, triángulo suelto, banda oscura del "fin del mundo").
+
+- [x] **T11a — Z-fighting de decals**: carretera (-0.012) vs apron (-0.015) separados por 3 mm
+  y líneas de andén 2 mm sobre la carretera — a 100-300 m la precisión del z-buffer (near 0.1,
+  far 1500) es de ~1-2 cm y titilan al orbitar. Offsets escalonados en centímetros: carretera
+  +0.02, líneas de andén +0.028, walkway +0.012, crosswalks +0.014, cinta de peligro +0.016;
+  `camera.near` 0.1 → 0.2 duplica la precisión de profundidad.
+- [x] **T11b — Borde del terreno**: el disco (r=760) terminaba antes de la niebla máxima
+  (900) → franja oscura visible desde vistas altas. Radio 760 → 1200 (el borde cae tras la
+  niebla y se pinta como bruma pura) y el nadir del cielo ahora retiene la bruma cálida mucho
+  más antes de hundirse en oscuro.
+
+### T11 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas elevadas con zoom-out reproducido por CDP
+(`.artifacts/sunset/sunset_5_elevada.png`, `sunset_6_elevada_orbitada.png`): parches de
+z-fighting eliminados; el borde del terreno se funde con la bruma. Nota: la franja oscura entre
+las montañas y el horizonte en vistas muy altas es el cuerpo propio de los anillos (comportamiento
+esperado, no artefacto).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
