@@ -617,6 +617,28 @@ Command: `npm run build` -> success. Capturas `sunset_5_elevada.png` (vista aér
 nítidas y cielo azul real sobre el sitio) y `audit_1_fachada.png`. El conjunto — calles, parque,
 edificio blanco, cielo fotográfico — se lee coherente y realista.
 
+## Work unit T21 — Texturas PBR de suelo (calles, parque, senderos, macetas)
+
+Authorized by user: "ya que pudiste hacer el cielo realista, haslo con el exterior las calles y
+las macetas del interior, mejoremos los elementos". Not yet committed.
+
+- [x] **T21a — Descargador**: `stepDownloadGroundTextures` añade 4 texturas Poly Haven CC0 en
+  1K (difusa + normal + rugosidad): `asphalt_02` (calles), `aerial_grass_rock` (pasto del
+  parque), `farm_soil` (tierra de macetas) y `gravel` (senderos). Se descartó `leafy_grass`
+  (hielo seco amarillo, no verde).
+- [x] **T21b — `grounds.ts`**: calles y conectores con asfalto PBR, parque y franjas con pasto
+  PBR (tinte verde 0x9cb56e sobre la textura seca), senderos de gravilla. Cada plano clona las
+  texturas con repeat según su tamaño.
+- [x] **T21c — `hall.ts`**: la tierra de las macetas usa `farm_soil` PBR (antes plano gris).
+- [x] **T21d — `WorkshopExpansion.ts`**: la calle de andenes con asfalto PBR (antes color
+  plano).
+
+### T21 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success; `npm run download-assets` -> valida las 4 texturas nuevas.
+Capturas `sunset_5_elevada.png` / `audit_1_fachada.png`: calles y parque con textura real,
+senderos de gravilla, macetas con tierra.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
