@@ -432,7 +432,7 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
   const walkwayGeo = new THREE.PlaneGeometry(82, 1.8);
   walkwayGeo.rotateX(-Math.PI / 2);
   const walkwayMesh = new THREE.Mesh(walkwayGeo, walkwayMat);
-  walkwayMesh.position.set(3.8, 0.003, 0); // Along center aisle, just above floor
+  walkwayMesh.position.set(3.8, 0.012, 0); // Along center aisle, staggered above the floor
   walkwayMesh.receiveShadow = true;
   group.add(walkwayMesh);
 
@@ -447,7 +447,7 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
     for (const cz of [-2.4, 2.4]) {
       const zebra = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.8), crosswalkMat);
       zebra.rotateX(-Math.PI / 2);
-      zebra.position.set(cx, 0.0035, cz);
+      zebra.position.set(cx, 0.014, cz);
       zebra.receiveShadow = true;
       group.add(zebra);
     }
@@ -569,7 +569,7 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
   const hazardTapeGeo = new THREE.PlaneGeometry(0.35, 26);
   hazardTapeGeo.rotateX(-Math.PI / 2);
   const hazardTapeMesh = new THREE.Mesh(hazardTapeGeo, hazardStripeMat);
-  hazardTapeMesh.position.set(33, 0.004, 0);
+  hazardTapeMesh.position.set(33, 0.016, 0);
   hazardTapeMesh.receiveShadow = true;
   group.add(hazardTapeMesh);
 
@@ -710,7 +710,10 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
   });
   const roadMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 32), roadMat);
   roadMesh.rotateX(-Math.PI / 2);
-  roadMesh.position.set(3.8, -0.012, 32);
+  // Y offsets of every ground decal are staggered in centimetres: at exterior
+  // viewing distances the depth buffer cannot separate coplanar planes and
+  // they z-fight (shimmering patches while orbiting).
+  roadMesh.position.set(3.8, 0.02, 32);
   roadMesh.receiveShadow = true;
   group.add(roadMesh);
 
@@ -718,7 +721,7 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
   for (let bx = -16; bx <= 24; bx += 8) {
     const dockLine = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 14), safetyYellowMat);
     dockLine.rotateX(-Math.PI / 2);
-    dockLine.position.set(bx, -0.01, 24);
+    dockLine.position.set(bx, 0.028, 24);
     group.add(dockLine);
   }
 

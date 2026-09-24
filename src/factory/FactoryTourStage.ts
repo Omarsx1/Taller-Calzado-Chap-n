@@ -85,7 +85,9 @@ export function initFactoryTour(): () => void {
   // the terrain disc while the full 93 m factory floor stays crisp.
   scene.fog = new THREE.Fog(0xe9a873, 100, 900);
 
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1500);
+  // near 0.2 buys ~2x depth precision at exterior distances so ground decals
+  // never z-fight while orbiting
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.2, 1500);
   camera.position.set(0.0, 3.8, 10.4);
 
   const controls = new OrbitControls(camera, canvas);
