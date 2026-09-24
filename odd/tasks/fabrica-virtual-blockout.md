@@ -342,6 +342,43 @@ stays readable (warm dusk tint, LEDs and white machines intact).
 - Work unit not committed; `scripts/verify_sunset.mjs` and the code changes are in the working
   tree pending the user's explicit commit/push request.
 
+## Work unit T9 — Colocación y orientación de medallones (auditoría de logos)
+
+Authorized by user: los logos deben quedar en lugares estratégicos y verse correctamente de
+frente, porque uno mostraba el reverso. Not yet committed.
+
+- [x] **T9a — `src/factory/BrandingLogo.ts`**: medallones de doble cara (segunda cara + aro
+  traseros, opción `doubleSided`) — un colgante o un montaje sobre vidrio muestra un logo
+  legible por ambos lados en lugar de un disco oscuro con halo.
+- [x] **T9b — Reubicados sobre caras reales medidas**: sondeo por CDP del modelo ya cargado
+  (Box3 por material + raycast Möller–Trumbore) dio: fachada sur, cara exterior z=15.69 con
+  vidrio hasta y=5.65 y puerta hasta ~4.9 m; caras interiores de lámina x=-42.02 (oeste) y
+  x=49.64 (este) a la altura del emblema. Fachada (0, 6.6, 15.78); oeste (-41.96, 7.4, 0);
+  este (49.58, 7.4, 0); radio de alas 1.6 → 1.2. Central y pedestal intactos.
+- [x] **T9c — Auditoría con cámara controlada**: hook temporal (no commiteado) para colocar
+  la cámara vía CDP y capturar cada medallón de frente y de reverso (`.artifacts/logo-audit2/`).
+
+Defectos encontrados y corregidos:
+1. Fachada: flotaba 0.43 m frente al muro a y=5.4 — el reverso asomaba por las ventanas altas
+   desde dentro y de fuera parecía colgado en la puerta. Ahora va sobre la banda sólida que
+   queda entre el dintel y el alero.
+2. Central interior: al orbitar al norte mostraba disco negro + halo verde → la doble cara lo
+   resuelve; el reverso ahora muestra el logo correcto.
+3. Oeste/este: medio enterrados en el espesor del muro (insets adivinados) → montados al ras de
+   las caras medidas; el emblema este ya aparece en la vista Fase 2.
+
+### T9 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas por medallón (frente/reverso) en
+`.artifacts/logo-audit2/`; vistas de zona en `.artifacts/logo-audit/`. Sin cambios netos en
+`FactoryTourStage.ts` (hooks de auditoría removidos; diff vacío).
+
+### Open after T9
+
+- Desde el eje exacto (z=0) una luminaria/cercha cruza delante de los emblemas de los muros —
+  realista y el logo sigue legible desde cualquier otro ángulo.
+- Las etiquetas de hotspot se acumulan sobre la fachada en la panorámica (arrastrado de T5/T6).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
