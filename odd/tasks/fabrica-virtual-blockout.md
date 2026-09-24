@@ -553,6 +553,36 @@ Command: `npm run build` -> success. Capturas `.artifacts/logo-audit2/colgado_fr
 y `colgado_perfil.png`: varillas visibles atando el emblema a la estructura; `par_rojo_cerca.png`:
 el par terracota apoyado limpio en la mesa entre máquinas. Hook temporal removido (diff limpio).
 
+## Work unit T18 — Cielo real HDR estilo Tidewater (puresky + IBL + lens flare)
+
+Authorized by user: "colocale el cielo de este proyecto" (Tidewater) "y usa recursos assets para
+hacer más realista nuestro proyecto, el sol que se vea como ese proyecto". Not yet committed.
+
+- [x] **T18a — Contexto**: Tidewater es WebGPU/WGSL con motor propio (atmósfera Hillaire 2020,
+  nubes volumétricas, god rays) — no portable directamente. Se reproduce el look con three.js:
+  HDRI real + lens flare.
+- [x] **T18b — `public/assets/textures/golden_hour_puresky_2k.hdr`** (nuevo, 4.3 MB): HDRI
+  `industrial_sunset_puresky` 2K de Poly Haven (CC0, atardecer industrial con nubes reales),
+  descargado y validado (magic bytes RADIANCE). `scripts/download_assets.mjs` gana el paso
+  `stepDownloadSkyHDRI` para reproducibilidad.
+- [x] **T18c — `src/factory/sky.ts` reescrito**: HDRI equirectangular como background +
+  image-based lighting (three convierte el equirect a PMREM automáticamente). Detección del
+  sol en runtime (el píxel más luminoso de la semiesfera superior del HDR) → la lens flare
+  (glare principal + fantasmas hexagonales, texturas generadas) se ancla a la posición real del
+  sol y el rig de luz (key light ×300) se alinea vía `onSunDirection`. Nubes billboard
+  eliminadas (el HDRI trae nubes reales). Expuesta `environmentIntensity` 0.9, exposure 0.7,
+  hemisférica 0.95 / ambiente 0.5 compensando el IBL real.
+- [x] **T18d — Iteraciones descartadas**: (1) Sky Preetham de three a exposición 0.85/0.6 —
+  cielo lavado sin azul ni sol visible desde los ángulos principales; (2) mural en la banda
+  sólida del muro norte — oculto por el velo del techo desde vistas bajas (ver T17b).
+
+### T18 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/logo-audit/audit_*.png` y
+`.artifacts/sunset/sunset_5_elevada.png`: cielo con nubes reales, fachada blanca limpia,
+parque y calles intactos, interior luminoso con IBL real. `FactoryTourStage.ts` sin cambios
+netos de hooks.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
