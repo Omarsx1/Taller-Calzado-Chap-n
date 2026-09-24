@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { darkSteelMat } from './materials';
 
 export interface LogoMedallionOptions {
   radius?: number;
@@ -146,11 +147,10 @@ export function buildFactoryBranding(): THREE.Group {
   exteriorLogo.rotation.y = 0; // Front faces +Z (exterior parking/apron)
   brandingGroup.add(exteriorLogo);
 
-  // 2. Interior Central Production Mural: mounted on the north window wall's
-  // header band (inner face z = -15.42 measured by raycast), facing the hall
-  // and the default camera. A wall sign reads as mounted from every angle —
-  // the old suspended version vanished against the roof soffit and floated.
-  // Double-sided: the glass behind shows a correct logo from outside too.
+  // 2. Interior Central Production Truss: hung over the main production axis,
+  // facing the hall. Two thick rods (8 cm) tie the upper rim to the roof
+  // structure so the emblem reads as a properly hung sign from below — with
+  // the double-sided face, the back shows a correct logo too.
   const interiorCenterLogo = createLogoMedallion({
     radius: 1.45, // 2.9m diameter interior emblem
     depth: 0.07,
@@ -158,8 +158,17 @@ export function buildFactoryBranding(): THREE.Group {
     haloColor: 0x10b981, // Emerald Green Clean Tech halo
     emissiveIntensity: 0.5,
   });
-  interiorCenterLogo.position.set(0.0, 4.6, -15.395); // y 3.15..6.05 over the window header
+  interiorCenterLogo.position.set(0.0, 5.2, -7.6);
   interiorCenterLogo.rotation.y = 0; // Facing +Z into the hall
+
+  const rodLength = 1.45; // local top 2.55 = world 7.75, inside the roof frame
+  const rodGeo = new THREE.CylinderGeometry(0.04, 0.04, rodLength, 10);
+  for (const rx of [-0.9, 0.9]) {
+    const rod = new THREE.Mesh(rodGeo, darkSteelMat);
+    rod.position.set(rx, 2.55 - rodLength / 2, 0);
+    rod.castShadow = true;
+    interiorCenterLogo.add(rod);
+  }
   brandingGroup.add(interiorCenterLogo);
 
   // 3. Hero Showcase Pedestal Badge: Embossed on the front face of the circular pedestal
