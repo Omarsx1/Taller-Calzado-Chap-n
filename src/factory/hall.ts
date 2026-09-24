@@ -20,6 +20,24 @@ import {
 
 let contactShadowTexture: THREE.CanvasTexture | null = null;
 
+/** Tierra real para las macetas (Poly Haven farm_soil, CC0) */
+const soilPbrMat = (() => {
+  const loader = new THREE.TextureLoader();
+  const mk = (file: string, srgb: boolean) => {
+    const t = loader.load(`/assets/textures/${file}`);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(1.1, 0.3);
+    if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  };
+  return new THREE.MeshStandardMaterial({
+    map: mk('farm_soil_diff_1k.jpg', true),
+    normalMap: mk('farm_soil_nor_gl_1k.jpg', false),
+    roughnessMap: mk('farm_soil_rough_1k.jpg', false),
+    roughness: 1,
+  });
+})();
+
 /**
  * Radial-gradient decal used by every contact shadow. The 256 x 256 canvas is
  * generated only once and shared across all shadow planes.
@@ -154,10 +172,10 @@ function createPlanter(width = 1.6, depth = 0.45): THREE.Group {
   pot.receiveShadow = true;
   group.add(pot);
 
-  // Top soil plane
+  // Top soil plane (real soil texture, Poly Haven farm_soil CC0)
   const soil = new THREE.Mesh(
     new THREE.PlaneGeometry(width - 0.06, depth - 0.06),
-    darkSteelMat,
+    soilPbrMat,
   );
   soil.rotation.x = -Math.PI / 2;
   soil.position.y = 0.54;
