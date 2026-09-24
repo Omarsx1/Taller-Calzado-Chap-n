@@ -6,6 +6,8 @@ export interface LogoMedallionOptions {
   hasHalo?: boolean;
   haloColor?: number;
   emissiveIntensity?: number;
+  /** Second logo face on the back so the medallion reads correctly from any side. */
+  doubleSided?: boolean;
 }
 
 /**
@@ -14,6 +16,8 @@ export interface LogoMedallionOptions {
  * - Outer beveled brushed metallic rim with realistic light catch
  * - High-resolution logo face with alpha cutout from /logo.webp
  * - Clean Tech backlight halo ring for evening and ambient prominence
+ * - Optional double-sided build: hanging and glass-mounted signs show a
+ *   correct, readable logo from both sides (never a blank reverse)
  */
 export function createLogoMedallion(options: LogoMedallionOptions = {}): THREE.Group {
   const {
@@ -22,6 +26,7 @@ export function createLogoMedallion(options: LogoMedallionOptions = {}): THREE.G
     hasHalo = true,
     haloColor = 0x38bdf8,
     emissiveIntensity = 0.4,
+    doubleSided = true,
   } = options;
 
   const group = new THREE.Group();
@@ -78,6 +83,19 @@ export function createLogoMedallion(options: LogoMedallionOptions = {}): THREE.G
 
   group.add(bezel, rim, face);
 
+  // 3b. Double-sided build: a second face turned 180° so viewers on the back
+  // side (hanging sign, glass mounting) also see a correct, readable logo.
+  if (doubleSided) {
+    const backRim = new THREE.Mesh(rim.geometry, rimMat);
+    backRim.position.z = -depth / 2;
+
+    const backFace = new THREE.Mesh(face.geometry, faceMat);
+    backFace.rotation.y = Math.PI;
+    backFace.position.z = -(depth / 2 + 0.005);
+
+    group.add(backRim, backFace);
+  }
+
   // 4. Subtle Clean Tech ambient halo illumination
   if (hasHalo) {
     const haloMat = new THREE.MeshBasicMaterial({
@@ -99,18 +117,24 @@ export function createLogoMedallion(options: LogoMedallionOptions = {}): THREE.G
 
 /**
  * Builds the complete factory branding package and places logo medallions at key strategic locations:
- * 1. Exterior Main Entrance Facade (Frontispicio Principal): Seen upon arrival & panoramic view.
- * 2. Interior Central Structural Truss (Mural Central): Overlooking active production.
+ * 1. Exterior Main Entrance Facade (Frontispicio Principal): mounted on the curtain wall above
+ *    the main gate, seen upon arrival & from the panoramic view.
+ * 2. Interior Central Structural Truss (Mural Central): overlooking active production.
  * 3. Hero Showcase Pedestal (Pedestal de Chanclas): Directly beneath the featured sandals.
  * 4. West Wing Logistics Wall: Above raw materials intake.
  * 5. East Wing Expansion Wall: Branding the future growth area.
+ *
+ * Placement uses the measured warehouse shell layers (per-material Box3 probe):
+ * walls outer face z = 15.69 / x -42.59..50.19, metal siding inner faces x = -42.23
+ * (west) and x = 49.74 (east), glass band y 0.77..5.65, gate top ~4.9 m. Emblems sit
+ * proud of those faces on solid bands so none is buried in, or pokes through, a wall.
  */
 export function buildFactoryBranding(): THREE.Group {
   const brandingGroup = new THREE.Group();
   brandingGroup.name = 'FactoryBranding_Logos';
 
-  // 1. Exterior Main Facade: Prominently mounted on the concrete fascia beam above the main central gate
-  // X: 0.0 (exact center of open vehicular entrance), Y: 6.20 (aligned with roof gable/fascia), Z: 16.05 (exterior south facade)
+  // 1. Exterior Main Facade: mounted on the wall band above the main central gate
+  // (glass tops at y 5.65; wall outer face z = 15.69, roof fascia at z 15.77)
   const exteriorLogo = createLogoMedallion({
     radius: 1.05, // 2.1m diameter facade emblem
     depth: 0.08,
@@ -118,12 +142,13 @@ export function buildFactoryBranding(): THREE.Group {
     haloColor: 0x38bdf8,
     emissiveIntensity: 0.45,
   });
-  exteriorLogo.position.set(0.0, 5.40, 16.12);
-  exteriorLogo.rotation.y = 0; // Facing +Z (exterior parking/apron)
+  exteriorLogo.position.set(0.0, 6.6, 15.78); // y 5.55..7.65 on the solid band above the glass
+  exteriorLogo.rotation.y = 0; // Front faces +Z (exterior parking/apron)
   brandingGroup.add(exteriorLogo);
 
-  // 2. Interior Central Production Truss: Suspended above the main central production axis
-  // Facing south (+Z) towards the entrance and the green safety walkway
+  // 2. Interior Central Production Truss: suspended above the main central production axis
+  // Facing south (+Z) towards the entrance and the green safety walkway; double-sided so the
+  // north half of the hall also sees a correct logo instead of a blank reverse
   const interiorCenterLogo = createLogoMedallion({
     radius: 1.45, // 2.9m diameter interior emblem
     depth: 0.07,
@@ -131,7 +156,7 @@ export function buildFactoryBranding(): THREE.Group {
     haloColor: 0x10b981, // Emerald Green Clean Tech halo
     emissiveIntensity: 0.5,
   });
-  interiorCenterLogo.position.set(0.0, 5.20, -7.6);
+  interiorCenterLogo.position.set(0.0, 5.2, -7.6);
   interiorCenterLogo.rotation.y = 0; // Facing +Z into the hall
   brandingGroup.add(interiorCenterLogo);
 
@@ -148,27 +173,29 @@ export function buildFactoryBranding(): THREE.Group {
   pedestalBadge.rotation.y = 0; // Facing +Z directly at visitor eye level
   brandingGroup.add(pedestalBadge);
 
-  // 4. West Wing Wall Emblem (Almacén y Materias Primas)
+  // 4. West Wing Wall Emblem (Almacén y Materias Primas): proud of the corrugated
+  // siding inner face at emblem height (raycast: x = -42.02), above the glass band
   const westWallLogo = createLogoMedallion({
-    radius: 1.6,
+    radius: 1.2,
     depth: 0.08,
     hasHalo: true,
     haloColor: 0x0284c7,
     emissiveIntensity: 0.4,
   });
-  westWallLogo.position.set(-42.55, 5.4, 0.0);
+  westWallLogo.position.set(-41.96, 7.4, 0.0); // y 6.2..8.6: above pendants, below eave (~9.1)
   westWallLogo.rotation.y = Math.PI / 2; // Facing East across the whole warehouse
   brandingGroup.add(westWallLogo);
 
-  // 5. East Wing Expansion Wall Emblem (Fase 2)
+  // 5. East Wing Expansion Wall Emblem (Fase 2): proud of the siding inner face
+  // (raycast: x = 49.64), plain metal wall there
   const eastWallLogo = createLogoMedallion({
-    radius: 1.6,
+    radius: 1.2,
     depth: 0.08,
     hasHalo: true,
     haloColor: 0xf59e0b, // Amber growth halo
     emissiveIntensity: 0.4,
   });
-  eastWallLogo.position.set(49.9, 5.4, 0.0);
+  eastWallLogo.position.set(49.58, 7.4, 0.0);
   eastWallLogo.rotation.y = -Math.PI / 2; // Facing West across the whole warehouse
   brandingGroup.add(eastWallLogo);
 
