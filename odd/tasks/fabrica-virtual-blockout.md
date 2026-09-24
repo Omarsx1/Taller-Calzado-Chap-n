@@ -529,6 +529,30 @@ Command: `npm run build` -> success. Capturas de primer plano `.artifacts/logo-a
 y `cartel_qc.png`: título completo dentro del tablero, poste detrás del panel. Hook temporal
 removido (diff limpio en FactoryTourStage.ts).
 
+## Work unit T17 — Par terracota hundido + mural colgante con varillas
+
+Authorized by user: la chancla roja del Aparado está hundida en su base, y el mural central
+seguía leyéndose mal posicionado. Not yet committed.
+
+- [x] **T17a — `zones.ts`**: el par terracota (0, 0.90, 0.2 local) quedaba exactamente bajo la
+  placa base de la máquina de coser de x=-0.4 — su mitad trasera desaparecía dentro de la base.
+  Movido a (0.5, 0.90, 0.5), entre las dos máquinas.
+- [x] **T17b — `BrandingLogo.ts`**: el mural central en el muro norte (y=4.6) montaba sobre el
+  vidrio y leía pegado a la ventana; subirlo a la banda sólida (y=7.15) era invisible desde
+  dentro (el velo del techo norte, que baja de 9.3 a 6.0, lo tapa — verificado por raycast).
+  Solución final: regresa a colgar sobre el eje de producción (0, 5.2, -7.6) con DOS VARILLAS
+  de 8 cm hasta la estructura del techo — visibles contra los ventanales desde las vistas
+  frontales; leen como letrero colgado profesional.
+- [x] **T17c — Lección**: la banda sólida alta del muro norte NO es utilizable para carteles
+  desde vistas interiores bajas (oculta por el velo); todo elemento elevado del lado norte
+  necesita suspensión visible o montaje bajo (≤ y 6).
+
+### T17 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/logo-audit2/colgado_frente_abajo.png`
+y `colgado_perfil.png`: varillas visibles atando el emblema a la estructura; `par_rojo_cerca.png`:
+el par terracota apoyado limpio en la mesa entre máquinas. Hook temporal removido (diff limpio).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
