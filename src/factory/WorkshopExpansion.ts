@@ -661,18 +661,21 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
   }
 
   /* --------------------------------------------------------- 7. EXPANSIVE EXTERIOR GROUND APRON */
-  // Ground concrete apron surrounding warehouse so zooming out looks solid and architectural
+  // Ground concrete apron surrounding warehouse so zooming out looks solid and architectural.
+  // Anisotropy keeps the warm grazing-angle sunset light from shimmering across the tiling.
   const groundTextureLoader = new THREE.TextureLoader();
   const groundDiff = groundTextureLoader.load('/assets/textures/concrete_floor_diff_2k.jpg');
   groundDiff.colorSpace = THREE.SRGBColorSpace;
   groundDiff.wrapS = THREE.RepeatWrapping;
   groundDiff.wrapT = THREE.RepeatWrapping;
-  groundDiff.repeat.set(24, 20);
+  groundDiff.repeat.set(16, 14);
+  groundDiff.anisotropy = 8;
 
   const groundRough = groundTextureLoader.load('/assets/textures/concrete_floor_rough_2k.jpg');
   groundRough.wrapS = THREE.RepeatWrapping;
   groundRough.wrapT = THREE.RepeatWrapping;
-  groundRough.repeat.set(24, 20);
+  groundRough.repeat.set(16, 14);
+  groundRough.anisotropy = 8;
 
   const exteriorGroundMat = new THREE.MeshStandardMaterial({
     map: groundDiff,
