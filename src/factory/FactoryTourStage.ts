@@ -13,6 +13,7 @@ import { createLandscape } from './landscape';
 import { uvStripMat } from './materials';
 import { loadShoeAssets } from './ShoeModels';
 import { createSkyTexture, disposeSkyTexture } from './sky';
+import { buildFactoryBranding } from './BrandingLogo';
 import { loadWarehouse } from './WarehouseLoader';
 import { buildWorkshopExpansion } from './WorkshopExpansion';
 import { buildZones, updateWithRealShoes } from './zones';
@@ -116,6 +117,9 @@ export function initFactoryTour(): () => void {
   const expansion = buildWorkshopExpansion();
   scene.add(expansion.group);
 
+  const branding = buildFactoryBranding();
+  scene.add(branding);
+
   const landscape = createLandscape();
   scene.add(landscape.group);
 
@@ -143,7 +147,7 @@ export function initFactoryTour(): () => void {
     });
 
   // Hotspot occluders: machine bodies, racks, and station surfaces
-  const occluders: THREE.Object3D[] = [...zones.occluders, expansion.group];
+  const occluders: THREE.Object3D[] = [...zones.occluders, expansion.group, branding];
 
   /* ------------------------------------------------------------- camera fly */
 
