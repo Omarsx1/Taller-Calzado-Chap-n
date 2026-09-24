@@ -68,6 +68,15 @@ body {
   pointer-events: none;
 }
 
+/* The whole layer fades while the camera orbits outside the workshop */
+#factory-hotspot-layer.is-outside {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 320ms ease,
+    visibility 0s linear 320ms;
+}
+
 /* ---------------------------------------------------------------- hotspots */
 
 .factory-hotspot {
@@ -78,35 +87,69 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  padding: 7px 13px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.86);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
-  color: #fff;
+  color: var(--obsidiana);
   font: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;
-  transition: transform 160ms ease, background-color 160ms ease;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.12),
+    0 8px 24px rgba(15, 23, 42, 0.16);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
   will-change: transform;
+}
+
+/* Stem pointing from the pill down to the exact 3D anchor */
+.factory-hotspot::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 2px;
+  height: 10px;
+  transform: translateX(-50%);
+  background: linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.08));
 }
 
 .factory-hotspot::before {
   content: '';
-  width: 8px;
-  height: 8px;
+  flex: none;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--anil);
-  box-shadow: 0 0 0 4px rgba(5, 132, 199, 0.28);
+  box-shadow: 0 0 0 3px rgba(5, 132, 199, 0.18);
 }
 
 .factory-hotspot:hover,
 .factory-hotspot:focus-visible {
-  background: var(--anil);
+  border-color: rgba(5, 132, 199, 0.55);
   outline: none;
+  box-shadow:
+    0 2px 4px rgba(15, 23, 42, 0.14),
+    0 12px 32px rgba(15, 23, 42, 0.22);
+}
+
+.factory-hotspot[aria-current='true'] {
+  background: var(--obsidiana);
+  border-color: var(--obsidiana);
+  color: #fff;
+}
+
+.factory-hotspot[aria-current='true']::before {
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
 }
 
 .factory-hotspot[hidden] {

@@ -60,12 +60,19 @@ export class HotspotLayer {
     });
   }
 
-  /** Projects every anchor and hides markers that are behind or occluded. */
-  update(occluders: THREE.Object3D[]): void {
+  /**
+   * Projects every anchor and hides markers that are behind or occluded.
+   * `insideWorkshop` gates the whole layer: markers are an interior affordance
+   * and fade out while the camera orbits outside the building shell.
+   */
+  update(occluders: THREE.Object3D[], insideWorkshop: boolean): void {
     this.frame += 1;
-    const runOcclusion = this.frame % OCCLUSION_INTERVAL === 0;
+    this.host.classList.toggle('is-outside', !insideWorkshop);
+    if (!insideWorkshop) return;
+
     const width = this.host.clientWidth;
     const height = this.host.clientHeight;
+    const runOcclusion = this.frame % OCCLUSION_INTERVAL === 0;
 
     this.defs.forEach((def, index) => {
       const button = this.buttons[index];
@@ -100,7 +107,8 @@ export class HotspotLayer {
       const x = (this.projected.x * 0.5 + 0.5) * width;
       const y = (-this.projected.y * 0.5 + 0.5) * height;
       button.hidden = false;
-      button.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+      // Pill floats above the anchor with a 10px stem pointing at the point
+      button.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, calc(-100% - 10px))`;
       button.style.zIndex = String(Math.max(0, Math.round((1 - this.projected.z) * 1000)));
     });
   }

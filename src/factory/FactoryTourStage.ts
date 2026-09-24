@@ -146,6 +146,17 @@ export function initFactoryTour(): () => void {
       if (loading) loading.hidden = true;
     });
 
+  // Hotspot markers are an interior affordance: the layer fades out while the
+  // camera orbits outside the workshop shell (footprint probed from the model:
+  // x -42.68..50.33, z ±15.77, height 9.3 — with a small margin).
+  const WORKSHOP_BOUNDS = { minX: -43.6, maxX: 51.3, minZ: -16.6, maxZ: 16.6, maxY: 9.9 };
+  const isCameraInsideWorkshop = (): boolean =>
+    camera.position.x > WORKSHOP_BOUNDS.minX &&
+    camera.position.x < WORKSHOP_BOUNDS.maxX &&
+    camera.position.z > WORKSHOP_BOUNDS.minZ &&
+    camera.position.z < WORKSHOP_BOUNDS.maxZ &&
+    camera.position.y < WORKSHOP_BOUNDS.maxY;
+
   // Hotspot occluders: machine bodies, racks, and station surfaces
   const occluders: THREE.Object3D[] = [...zones.occluders, expansion.group, branding];
 
@@ -289,7 +300,7 @@ export function initFactoryTour(): () => void {
     if (flying) updateFly();
     else controls.update(delta);
 
-    hotspotLayer.update(occluders);
+    hotspotLayer.update(occluders, isCameraInsideWorkshop());
 
     if (!visible || !pageVisible) return;
 
