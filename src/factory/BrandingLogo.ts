@@ -146,9 +146,11 @@ export function buildFactoryBranding(): THREE.Group {
   exteriorLogo.rotation.y = 0; // Front faces +Z (exterior parking/apron)
   brandingGroup.add(exteriorLogo);
 
-  // 2. Interior Central Production Truss: suspended above the main central production axis
-  // Facing south (+Z) towards the entrance and the green safety walkway; double-sided so the
-  // north half of the hall also sees a correct logo instead of a blank reverse
+  // 2. Interior Central Production Mural: mounted on the north window wall's
+  // header band (inner face z = -15.42 measured by raycast), facing the hall
+  // and the default camera. A wall sign reads as mounted from every angle —
+  // the old suspended version vanished against the roof soffit and floated.
+  // Double-sided: the glass behind shows a correct logo from outside too.
   const interiorCenterLogo = createLogoMedallion({
     radius: 1.45, // 2.9m diameter interior emblem
     depth: 0.07,
@@ -156,7 +158,7 @@ export function buildFactoryBranding(): THREE.Group {
     haloColor: 0x10b981, // Emerald Green Clean Tech halo
     emissiveIntensity: 0.5,
   });
-  interiorCenterLogo.position.set(0.0, 5.2, -7.6);
+  interiorCenterLogo.position.set(0.0, 4.6, -15.395); // y 3.15..6.05 over the window header
   interiorCenterLogo.rotation.y = 0; // Facing +Z into the hall
   brandingGroup.add(interiorCenterLogo);
 
