@@ -488,6 +488,29 @@ Command: `npm run build` -> success. Capturas elevadas/por zona en `.artifacts/s
 `.artifacts/logo-audit/`: calles con líneas, árboles con sombras largas, postes encendidos,
 interior intacto (el parque se ve verde a través de los ventanales).
 
+## Work unit T15 — Calles estilo referencia (aceras, postes de concreto, cableado)
+
+Authorized by user con captura de referencia (calle estilizada japonesa): aceras elevadas con
+guarnición y franja táctil, línea central amarilla, postes de concreto con cableado. Adaptado
+al atardecer del tour. Not yet committed.
+
+- [x] **T15a — Aceras y señalización**: aceras elevadas (0.14 m) con guarnición en las dos
+  caras de las cuatro calles, franja táctil amarilla al borde, línea central sólida amarilla
+  y líneas de borde blancas (sustituyen a las discontinuas), cruces peatonales en las
+  conexiones del sur.
+- [x] **T15b — Postes de concreto y cableado**: 16 postes (7.2 m, hormigón claro) sobre las
+  aceras interiores de las dos calles principales, escalonados entre las luminarias, con 2
+  crucetas cada uno y 3 cables catenarios por vano (sag 0.55 m) — 2 LineSegments en total.
+- [x] **T15c — Costura del cielo**: el resplandor del horizonte (r=1000) y dos nubes
+  alcanzaban el borde de la textura equirectangular → franja vertical visible mirando al
+  oeste. Radio 1000 → 660 y nubes reposicionadas dentro del encuadre.
+
+### T15 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/calle_sur*.png` (nivel de
+calle: aceras, franja táctil, línea amarilla, postes y cables contra el cielo) y
+`sunset_5_elevada.png` (vista aérea). Costura del cielo eliminada; líneas sobre su eje.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
