@@ -152,7 +152,7 @@ Final state: `npx tsc --noEmit` clean, `npm run build` succeeds.
   background texture and fog is renderer state), but the browser console line
   `[factory] draw calls: N` has not been read.
 
-### !! CONCURRENCY INCIDENT — needs user attention
+### CONCURRENCY INCIDENT — RESOLVED (kept for history)
 
 A SECOND writer/agent is editing this same project. Evidence:
 - `src/factory/proceduralTextures.ts` created 22:17, `src/factory/ShoeModels.ts` created 22:29 —
@@ -164,6 +164,11 @@ A SECOND writer/agent is editing this same project. Evidence:
 - `FactoryTourStage.ts` grew from 304 -> 313 -> 320 lines mid-session.
 Risk: two writers on the same files will keep breaking the build. This must be resolved before
 any further work.
+
+Resolution (2026-09-24): the "second writer" was a parallel agent session run by the user, not a
+rogue process. Both streams of work converged into the T6 expansion commit (`0f7304b`), which
+typechecks and builds clean. No work was lost. Standing rule going forward: one writer per
+work unit on this repo.
 
 ### Why this scope
 
@@ -189,7 +194,51 @@ the user. This is expected, not a defect.
 4. Interior is NOT washed out by fog (fog `near` must stay beyond typical interior distances).
 5. Sky reflections visible on the steel and the glass (this is the point of the swap).
 
+## Work unit T6 — Expansión al almacén completo (93 m) + pipeline de assets
+
+Authorized by user ("sube los cambios a github"). Delivered as three work units, pushed to
+`origin/main` (`6c29b8f..0f7304b`).
+
+- [x] **T6a — Assets CC0** `53b1fcc`: `scripts/download_assets.mjs` (Poly Haven 2K HDR +
+  concrete/metal PBR, Kenney GLB props) with content-type, magic-byte and md5 validation;
+  exposed as `npm run download-assets`; 15 derived files under `public/assets/` (23 MB).
+- [x] **T6b — Expansión de zonas** `0f7304b`: `src/factory/WorkshopExpansion.ts` (new, 871 lines)
+  builds the west raw-materials wing, east QC/packaging/logistics wing, the staged "Fase 2"
+  area, central safety walkway, fire equipment and the exterior apron.
+- [x] **T6c — Navegación + config**: `factory.config.ts` grows to 7 zones
+  (`panoramica`, `almacen`, `empaque`, `expansion` new) and 10 hotspots (added `almacen`,
+  `empaque`, `expansion`); `index.html` gains the matching nav buttons.
+- [x] **T6d — Materiales/texturas**: hazard stripe, pedestrian walkway and kraft shoe-box
+  procedural textures + pallet wood, safety-yellow and fire-red materials.
+- [x] **T6e — Ajustes de layout**: `zones.ts` (molding line on two presses, placeholder chanclas
+  removed now that real `.glb` shoes fill the slots), `ShoeModels.ts` (sole leveled against its
+  27.25 deg CAD slope), `WarehouseLoader.ts` (warehouse recentered on the tour origin),
+  `FactoryTourStage.ts` (expansion wired, fog/camera/controls range widened to 93 m).
+- [x] **T6f — Repo hygiene**: `.atl/` local skill-registry cache added to `.gitignore` (`3e6ef6b`);
+  it is machine-generated and contains absolute home-directory paths.
+
+### T6 verification evidence (orchestrator-run)
+
+Command: `npm run build` (`tsc --noEmit && vite build`) -> success, `dist/assets/index-*.js`
+686.19 kB raw / 180.55 kB gzip, CSS 3.87 kB. Re-run on the frozen commit before delivery.
+Command: `git push origin main` -> `6c29b8f..0f7304b`, branch back in sync with `origin/main`.
+Asset size check -> largest file 6.3 MB HDR, under GitHub's 100 MB limit, no LFS required.
+Secret scan over `scripts/download_assets.mjs` and the new `src/factory/*.ts` -> no keys/tokens;
+the downloader uses public CC0 APIs only.
+
+NOT verified: the visual result of the expansion. WebGL output needs a real browser; the user is
+the verifier of composition, lighting and camera framing (same caveat as T5).
+
+### Open after T6
+
+- The scene was already flagged low-contrast/milky in T5; the T6 additions raise the same visual
+  question and still need a browser pass.
+- Draw-call delta for the expansion was NOT measured. `renderer.info.render.calls|triangles` is
+  logged once after the first frame — read it in the browser to close criterion 6.
+- The 686 kB bundle (>500 kB) warning from three.js remains open; code-splitting is deferred.
+
 ## Next step
 
-T5 implementation, then visual tuning with the user, then T4: port `src/factory/*` into
-Calzado Chapín as `/fabrica` with lazy `import()` on viewport, sliced as chained PRs per zone.
+Visual tuning pass with the user in the browser (T5 + T6: contrast, hotspot overlap, expansion
+framing), then T4: port `src/factory/*` into Calzado Chapín as `/fabrica` with lazy `import()` on
+viewport, sliced as chained PRs per zone.
