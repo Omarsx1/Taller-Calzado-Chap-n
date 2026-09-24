@@ -41,14 +41,16 @@ export async function loadWarehouse(): Promise<WarehouseResult> {
     envMapIntensity: 0.85,
   });
 
+  // Columnas y banda baja de muro en blanco mate (mismo tratamiento que las
+  // paredes): sin color map, el concreto deja de leer tierra/tan bajo la luz
+  // cálida y las columnas quedan blancas como pide el estilo clean tech.
   const concreteMat = new THREE.MeshStandardMaterial({
     name: 'warehouse_concrete_pbr',
-    map: loadTexture('concrete_color.jpg', true),
     normalMap: loadTexture('concrete_nrm.png'),
     roughnessMap: loadTexture('concrete_rough.jpg'),
-    metalnessMap: loadTexture('concrete_met.jpg'),
-    roughness: 0.88,
-    metalness: 0.08,
+    color: 0xf6f4ef,
+    roughness: 0.85,
+    metalness: 0.04,
     envMapIntensity: 0.6,
   });
 
