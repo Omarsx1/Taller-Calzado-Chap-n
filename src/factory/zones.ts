@@ -787,13 +787,14 @@ export function updateWithRealShoes(slots: ShoeSlots): void {
   slots.oven.add(ovenShoe);
 
   // 5. Aparado Workbench in Zone B: 3 pairs of chanclas being assembled
+  // (pair B sits between the sewing machines — never under a machine base)
   slots.table.clear();
   const tablePairA = createShoePair(defaultShoeMaterial, 0.20);
   tablePairA.position.set(-1.6, 0.90, 0.15);
   tablePairA.rotation.y = 0.2;
 
   const tablePairB = createShoePair(terracottaShoeMaterial, 0.20);
-  tablePairB.position.set(0.0, 0.90, 0.2);
+  tablePairB.position.set(0.5, 0.90, 0.5);
 
   const tablePairC = createShoePair(jadeShoeMaterial, 0.20);
   tablePairC.position.set(1.6, 0.90, 0.15);
