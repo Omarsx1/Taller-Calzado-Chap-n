@@ -379,6 +379,30 @@ Command: `npm run build` -> success. Capturas por medallón (frente/reverso) en
   realista y el logo sigue legible desde cualquier otro ángulo.
 - Las etiquetas de hotspot se acumulan sobre la fachada en la panorámica (arrastrado de T5/T6).
 
+## Work unit T10 — Props apoyados en la estructura real (extintores flotantes)
+
+Authorized by user: los extintores flotaban en el aire; deben ir en las columnas, y revisar que
+el detalle no se repita en otros elementos. Not yet committed.
+
+- [x] **T10a — Columnas reales medidas**: escaneo de triángulos alto-angostos (minY<1, maxY>4.5,
+  extensiones <1.6 m) sobre el modelo cargado → dos hileras de columnas en z=±5.62, X = ±3.89,
+  ±11.47, ±19.05, ±26.83, ±34.41, sección ~0.3 m. Las estaciones estaban en z=±7.8 (pasillo
+  lateral vacío) con una retícula X inventada.
+- [x] **T10b — `WorkshopExpansion.ts`**: 16 estaciones de extintor montadas al ras de la cara
+  de columna que mira al pasillo central (z=∓5.45, rotación hacia el walkway); paquete de
+  perfiles de aluminio ahora descansa sobre durmientes de madera (antes flotaba 5 cm sin el
+  dunnage que el comentario prometía); pallet de cajas (-34, -5.5) → (-33.3, -5.5) porque
+  cortaba la columna (-34.41, -5.62).
+- [x] **T10c — Auditoría del resto**: carretes de cable (apoyados en sus flancos por diseño),
+pallets QC/expansión (holgados ≥0.08 m de columnas), barriles, letreros con base, racks de
+pared norte y máquinas de zonas.ts (todas apoyadas en piso) — sin más casos de flotación.
+
+### T10 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas de vistas Almacén/Fase 2/Inicial en
+`.artifacts/logo-audit/` tras el cambio: extintores visibles montados en columnas junto al
+pasillo, perfiles sobre durmientes, sin clips visibles.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
