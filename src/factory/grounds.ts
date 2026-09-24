@@ -245,10 +245,14 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
 
   const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, treePts.length);
   const blobLow = new THREE.InstancedMesh(blobGeo, leafMat, treePts.length);
+  const blobMid = new THREE.InstancedMesh(blobGeo, leafMat, treePts.length);
   const blobTop = new THREE.InstancedMesh(blobGeo, leafMat, treePts.length);
+  const blobWide = new THREE.InstancedMesh(blobGeo, leafMat, treePts.length);
   trunks.castShadow = true;
   blobLow.castShadow = true;
+  blobMid.castShadow = true;
   blobTop.castShadow = true;
+  blobWide.castShadow = true;
   const m4 = new THREE.Matrix4();
   const quat = new THREE.Quaternion();
   const euler = new THREE.Euler();
@@ -267,12 +271,22 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
     m4.compose(pos, quat, scl);
     blobLow.setMatrixAt(i, m4);
     blobLow.setColorAt(i, col.setHSL(0.24 + rng() * 0.05, 0.3, 0.2 + rng() * 0.06));
+    pos.set(x + (rng() - 0.5) * 0.55, 3.45 * k, z + (rng() - 0.5) * 0.55);
+    m4.compose(pos, quat, scl);
+    blobMid.setMatrixAt(i, m4);
+    blobMid.setColorAt(i, col.setHSL(0.23 + rng() * 0.05, 0.29, 0.19 + rng() * 0.06));
     pos.set(x + (rng() - 0.5) * 0.7, 3.95 * k, z + (rng() - 0.5) * 0.7);
     m4.compose(pos, quat, scl);
     blobTop.setMatrixAt(i, m4);
     blobTop.setColorAt(i, col.setHSL(0.23 + rng() * 0.05, 0.28, 0.18 + rng() * 0.06));
+    pos.set(x + (rng() - 0.5) * 0.5, 2.6 * k, z + (rng() - 0.5) * 0.5);
+    scl.set(1.3 * k, 0.62 * k, 1.3 * k);
+    m4.compose(pos, quat, scl);
+    blobWide.setMatrixAt(i, m4);
+    blobWide.setColorAt(i, col.setHSL(0.24 + rng() * 0.05, 0.26, 0.17 + rng() * 0.05));
+    scl.set(k, k, k);
   });
-  group.add(trunks, blobLow, blobTop);
+  group.add(trunks, blobLow, blobMid, blobTop, blobWide);
 
   /* ----------------------------------------------------------- benches */
 
