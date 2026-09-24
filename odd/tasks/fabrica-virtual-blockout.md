@@ -426,6 +426,29 @@ z-fighting eliminados; el borde del terreno se funde con la bruma. Nota: la fran
 las montañas y el horizonte en vistas muy altas es el cuerpo propio de los anillos (comportamiento
 esperado, no artefacto).
 
+## Work unit T12 — Tooltips interiores profesionales + paredes blancas
+
+Authorized by user: tooltips profesionales visibles únicamente dentro del taller, y paredes del
+taller blancas como las columnas. Not yet committed.
+
+- [x] **T12a — Visibilidad por interior**: `HotspotLayer.update(occluders, insideWorkshop)` —
+  el stage calcula si la cámara está dentro de la carcasa medida (x -43.6..51.3, z ±16.6,
+  y < 9.9) y la capa entera se desvanece (clase `is-outside`: opacity+visibility 320 ms) fuera
+  del edificio. Elimina de raíz el amontonamiento de etiquetas sobre la fachada (deuda T5/T6).
+- [x] **T12b — Rediseño de tooltips**: píldora blanca translúcida con blur, texto obsidiana,
+  punto añil, stem de 10 px apuntando al ancla (el JS ahora ancla el pie de la píldora al punto
+  3D), sombras suaves, hover con borde añil y selección en obsidiana.
+- [x] **T12c — Paredes blancas**: `WarehouseLoader.ts` — `walls` y `metal` sin color map
+  (textura gris teñida de ámbar por la luz era el marrón), pintura mate 0xf6f4ef / 0xf3f1ec,
+  metalness 0.04/0.22; se conservan normal/roughness maps (relieve de panel y corrugado).
+  Columnas, piso, techo y puertas sin cambios.
+
+### T12 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas: `audit_0_initial` (interior blanco con tooltips
+nuevos), `audit_1_fachada` (fachada blanca SIN etiquetas), `sunset_5_elevada` (vista alta sin
+hotspots y edificio blanco desde fuera) — en `.artifacts/`.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
