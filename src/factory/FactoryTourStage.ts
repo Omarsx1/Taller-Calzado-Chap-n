@@ -64,7 +64,7 @@ export function initFactoryTour(): () => void {
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.76;
+  renderer.toneMappingExposure = 0.85;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -78,16 +78,14 @@ export function initFactoryTour(): () => void {
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   const environment = pmremGenerator.fromEquirectangular(skyTexture).texture;
   scene.environment = environment;
-  scene.environmentIntensity = 0.75;
+  scene.environmentIntensity = 0.9;
   pmremGenerator.dispose();
 
-  // Atmospheric perspective: fades the far end of the hall and the exterior ridges
-  // into the sky haze. `near` stays beyond typical interior distances so the factory
-  // floor is untouched.
-  // Atmospheric perspective: fades the distant mountain ridges while keeping the full 93m factory crisp
-  scene.fog = new THREE.Fog(0xdae6f0, 60, 420);
+  // Atmospheric perspective: the sunset haze swallows the mountain rings and
+  // the terrain disc while the full 93 m factory floor stays crisp.
+  scene.fog = new THREE.Fog(0xe9a873, 100, 900);
 
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 450);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1500);
   camera.position.set(0.0, 3.8, 10.4);
 
   const controls = new OrbitControls(camera, canvas);
