@@ -449,6 +449,24 @@ Command: `npm run build` -> success. Capturas: `audit_0_initial` (interior blanc
 nuevos), `audit_1_fachada` (fachada blanca SIN etiquetas), `sunset_5_elevada` (vista alta sin
 hotspots y edificio blanco desde fuera) — en `.artifacts/`.
 
+## Work unit T13 — Mural central montado (ya no flota)
+
+Authorized by user: "hay logo flotando dentro que no se ve bien". Not yet committed.
+
+- [x] **T13 — `src/factory/BrandingLogo.ts`**: el mural central ya no cuelga del aire en
+  (0, 5.2, -7.6). Causas: sin suspensión visible; las varillas de prueba (1.45 m hasta el velo
+  del techo, y≈7.75 en z=-7.6 medido por raycast) quedaban ocultas tras el velo del techo norte
+  (que baja hacia el alero, y 9.3→6.0) desde cualquier vista baja, y el ducto HVAC de z=-2.8
+  cortaba su parte superior. Solución: montado en la cara interior del muro norte
+  (raycast: cara de lámina z=-15.42), posición (0, 4.6, -15.395), doble cara hacia el pasillo.
+  La vista por defecto y todas las vistas bajas lo leen como letrero de pared.
+
+### T13 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/logo-audit2/colgante_*.png` (montado
+sobre la banda de ventanales, centrado en montante) y `audit_0_initial` (visible arriba al
+centro desde la vista inicial). `FactoryTourStage.ts` sin cambios netos (hook temporal removido).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
