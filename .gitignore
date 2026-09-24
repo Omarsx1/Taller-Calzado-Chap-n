@@ -8,6 +8,9 @@ dist/
 # macOS
 .DS_Store
 
+# Tooling: local skill-registry cache (regenerated per machine, contains absolute paths)
+.atl/
+
 # logs
 *.log
 npm-debug.log*
