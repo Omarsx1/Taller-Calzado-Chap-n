@@ -284,8 +284,10 @@ export function createLandscape(): { group: THREE.Group; dispose: () => void } {
   group.renderOrder = -1;
 
   // Terrain disc under everything: dusk earth fading into the haze, so no
-  // sky-nadir seam shows between the apron edge and the mountains.
-  const groundGeometry = new THREE.CircleGeometry(760, 96);
+  // sky-nadir seam shows between the apron edge and the mountains. Radius
+  // 1200 keeps the rim beyond the fog's far plane, where it renders as pure
+  // haze and the "end of the world" edge disappears from high exterior views.
+  const groundGeometry = new THREE.CircleGeometry(1200, 96);
   groundGeometry.rotateX(-Math.PI / 2);
   const groundMaterial = new THREE.MeshStandardMaterial({
     color: 0x524052,

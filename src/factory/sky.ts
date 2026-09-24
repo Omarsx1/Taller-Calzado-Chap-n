@@ -152,11 +152,14 @@ export function createSkyTexture(): THREE.CanvasTexture {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  // 2. Nadir / lower half: warm haze at the horizon sinking into dark dusk
-  //    ground (mostly hidden by the landscape ground disc and maxPolarAngle).
+  // 2. Nadir / lower half: warm haze at the horizon holding on much longer
+  //    before sinking into dark dusk ground — from high exterior views the
+  //    band beyond the terrain edge reads as distant haze, not a dark seam
+  //    (mostly hidden by the landscape ground disc and maxPolarAngle).
   const ground = ctx.createLinearGradient(0, HORIZON, 0, HEIGHT);
   ground.addColorStop(0, '#d99a68');
-  ground.addColorStop(0.12, '#6b4a58');
+  ground.addColorStop(0.3, '#b07a5e');
+  ground.addColorStop(0.6, '#4a3a4a');
   ground.addColorStop(1, '#221a30');
   ctx.fillStyle = ground;
   ctx.fillRect(0, HORIZON, WIDTH, HEIGHT - HORIZON);
