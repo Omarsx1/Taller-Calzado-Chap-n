@@ -1,0 +1,21 @@
+{
+  "name": "chapin-fabrica-virtual",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Prototipo navegable del recorrido virtual 3D de la fabrica de Calzado Chapin",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "three": "^0.174.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.174.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}

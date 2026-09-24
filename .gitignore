@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.vite/
+
+# macOS
+.DS_Store
+
+# logs
+*.log
+npm-debug.log*
+
+# Raw 3D authoring sources (223 MB). Not required to run the app: the runtime
+# reads the derived textures already committed under public/warehouse/.
+# Enable Git LFS or keep this out of version control if clone size matters.
+warehouse_3ds/
+
+# Exact duplicates of the models served from public/ (verified by sha256).
+/ShoesL.glb
+/ShoesR.glb

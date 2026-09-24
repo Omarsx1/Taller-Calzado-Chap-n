@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Recorrido Virtual · Calzado Chapín</title>
+    <meta
+      name="description"
+      content="Prototipo de recorrido virtual 3D por la fábrica ecoeficiente de Calzado Chapín."
+    />
+  </head>
+  <body>
+    <div id="app">
+      <section id="factory-stage">
+        <canvas id="factory-canvas"></canvas>
+        <div id="factory-hotspot-layer" aria-live="polite"></div>
+      </section>
+
+      <header class="topbar">
+        <p class="topbar__brand">CALZADO CHAPÍN</p>
+        <p class="topbar__hint">
+          Arrastra para rotar · Rueda para acercar · Clic en un punto para saber más
+        </p>
+      </header>
+
+      <nav class="zonenav" aria-label="Ir a una estación de trabajo">
+        <button class="zonenav__btn" type="button" data-goto="textiles">Textiles y Corte</button>
+        <button class="zonenav__btn" type="button" data-goto="aparado">Aparado</button>
+        <button class="zonenav__btn" type="button" data-goto="moldeado">Moldeado 3D</button>
+      </nav>
+
+      <aside id="factory-panel" class="panel" hidden>
+        <button id="factory-panel-close" class="panel__close" type="button" aria-label="Cerrar">
+          &times;
+        </button>
+        <p class="panel__eyebrow" id="factory-panel-eyebrow"></p>
+        <h2 class="panel__title" id="factory-panel-title"></h2>
+        <p class="panel__body" id="factory-panel-body"></p>
+        <p class="panel__meta" id="factory-panel-meta"></p>
+      </aside>
+
+      <div id="factory-loading" class="loading">Preparando el taller…</div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
