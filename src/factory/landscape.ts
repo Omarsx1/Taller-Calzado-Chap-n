@@ -1,20 +1,43 @@
 import * as THREE from 'three';
 
 /**
- * Distant ridge bands for the Calzado Chapín virtual tour.
+ * 360° mountain horizon for the Calzado Chapín virtual tour.
  *
- * Two billboard planes carry painted alpha silhouettes so the exterior reads as
- * layered ridges receding into the sky haze. Each silhouette is drawn with a
- * fixed control-height profile, so the landscape is stable across reloads.
+ * Three concentric open cylinders carry painted alpha silhouettes so the
+ * exterior reads as layered ridge lines receding into golden-hour haze from
+ * every orbit angle. Crests are rim-lit toward the painted sunset sun and the
+ * anti-sun slopes cool toward violet; a dark ground disc closes the gap
+ * between the concrete apron and the mountain bases.
+ *
+ * Ridge profiles sum integer-frequency triangular waves, so the texture wraps
+ * the cylinder seamlessly and reloads deterministically.
+ *
+ * Keep `RING_SUN_U` in sync with the sun painted in `sky.ts` (u = 0.34
+ * equirect): the cylinder parametrises u = atan2(x, z) / 2π, which maps the
+ * same world azimuth to u ≈ 0.41.
  */
 
-interface RidgeTextureOptions {
-  /** Ridge colour at the peaks (top of the silhouette). */
-  peakColor: string;
-  /** Haze colour at the base, where the ridge meets the horizon. */
-  hazeColor: string;
-  /** Deterministic peak heights sampled evenly across the canvas (0..1). */
-  heights: readonly number[];
+/** Sun azimuth in cylinder UV space (see module docblock). */
+const RING_SUN_U = 0.41;
+
+/** Ground centre matches the concrete apron in `WorkshopExpansion.ts`. */
+const CENTER_X = 3.8;
+const CENTER_Z = 0;
+
+/** mulberry32: tiny deterministic PRNG for stable ridge profiles. */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** 0..1 triangular wave with period 1 — jagged when summed across octaves. */
+function tri(t: number): number {
+  return 1 - Math.abs(2 * (t - Math.floor(t)) - 1);
 }
 
 /** Converts a `#rrggbb` colour into an `rgba()` string with the given alpha. */
@@ -26,81 +49,155 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-/** Paints a filled ridge silhouette with a transparent sky around it. */
-function createRidgeTexture(options: RidgeTextureOptions): THREE.CanvasTexture {
-  const width = 1024;
-  const height = 256;
+interface RingLayerOptions {
+  /** Ring radius in world units. */
+  radius: number;
+  /** Ring height in world units (base rests at y = 0). */
+  height: number;
+  /** Silhouette colour at the peaks. */
+  peakColor: string;
+  /** Haze colour at the base, where the ridge meets the ground disc. */
+  hazeColor: string;
+  /** Sun-lit crest colour for the rim-light pass. */
+  rimColor: string;
+  /** Rim-light strength 0..1 (near rings catch more direct sun). */
+  rimStrength: number;
+  /** Material opacity. */
+  opacity: number;
+  /** Transparent-pass draw order (far rings first). */
+  renderOrder: number;
+  /** PRNG seed for the deterministic profile. */
+  seed: number;
+  /** Amplitude/frequency/sharpness octaves for the ridge profile. */
+  octaves: ReadonlyArray<readonly [amplitude: number, frequency: number, sharpness: number]>;
+}
 
+const TEXTURE_WIDTH = 2048;
+const TEXTURE_HEIGHT = 512;
+
+/**
+ * Paints a seamless 360° ridge silhouette: filled crest with a peak-to-haze
+ * vertical gradient, a sun-side rim light on the crest and a warm/cool body
+ * wash across the wrap. Everything above the silhouette stays transparent.
+ */
+function createRingTexture(options: RingLayerOptions): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = TEXTURE_WIDTH;
+  canvas.height = TEXTURE_HEIGHT;
 
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('[factory] 2D canvas context unavailable for ridge');
 
-  ctx.clearRect(0, 0, width, height);
+  const rng = mulberry32(options.seed);
+  const phases = options.octaves.map(() => rng());
 
-  // Deterministic profile: base on the bottom edge, peaks from fixed heights.
-  const step = width / (options.heights.length - 1);
+  // Deterministic profile: integer frequencies keep the wrap seamless. Broad
+  // low-frequency swells give the massifs, while sharpened mid/high octaves
+  // cut the jagged crest detail — power >1 narrows each wave into peaks so
+  // the ridgelines read as mountains rather than rolling dunes.
+  const heightAt = (u: number): number => {
+    let h = 0.3;
+    options.octaves.forEach(([amplitude, frequency, sharpness], index) => {
+      h += amplitude * tri(u * frequency + phases[index]) ** sharpness;
+    });
+    return Math.min(0.95, Math.max(0.05, h));
+  };
+
+  // Crest polyline (base on the bottom edge).
+  const step = 4;
+  const crest: Array<[number, number]> = [];
+  for (let x = 0; x <= TEXTURE_WIDTH; x += step) {
+    crest.push([x, TEXTURE_HEIGHT - heightAt(x / TEXTURE_WIDTH) * TEXTURE_HEIGHT]);
+  }
+
+  // Filled silhouette with the peak→haze vertical gradient.
   ctx.beginPath();
-  ctx.moveTo(0, height);
-  options.heights.forEach((peak, index) => {
-    ctx.lineTo(index * step, height - peak * height);
-  });
-  ctx.lineTo(width, height);
+  ctx.moveTo(0, TEXTURE_HEIGHT);
+  for (const [x, y] of crest) ctx.lineTo(x, y);
+  ctx.lineTo(TEXTURE_WIDTH, TEXTURE_HEIGHT);
   ctx.closePath();
-
-  const gradient = ctx.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0, options.peakColor);
-  gradient.addColorStop(1, options.hazeColor);
-  ctx.fillStyle = gradient;
-  ctx.filter = 'blur(3px)';
+  const body = ctx.createLinearGradient(0, 0, 0, TEXTURE_HEIGHT);
+  body.addColorStop(0, options.peakColor);
+  body.addColorStop(1, options.hazeColor);
+  ctx.fillStyle = body;
   ctx.fill();
-  ctx.filter = 'none';
 
-  // Fade the top 40% of the silhouette into the sky so peaks dissolve away.
-  const fade = ctx.createLinearGradient(0, 0, 0, height * 0.28);
-  fade.addColorStop(0, hexToRgba(options.hazeColor, 0.7));
-  fade.addColorStop(1, hexToRgba(options.hazeColor, 0));
+  // Melt the base into the terrain: fading the bottom of the silhouette to
+  // transparent softens the straight cylinder edge against the ground disc.
+  const baseFade = ctx.createLinearGradient(0, TEXTURE_HEIGHT * 0.86, 0, TEXTURE_HEIGHT);
+  baseFade.addColorStop(0, 'rgba(0,0,0,0)');
+  baseFade.addColorStop(1, 'rgba(0,0,0,0.7)');
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = baseFade;
+  ctx.fillRect(0, TEXTURE_HEIGHT * 0.86, TEXTURE_WIDTH, TEXTURE_HEIGHT * 0.14);
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Warm body wash on the sun side, cool violet on the anti-sun side.
+  const wash = ctx.createLinearGradient(0, 0, TEXTURE_WIDTH, 0);
+  wash.addColorStop(0.0, 'rgba(58,42,84,0.26)');
+  wash.addColorStop(0.16, 'rgba(58,42,84,0.20)');
+  wash.addColorStop(0.41, 'rgba(255,158,96,0.20)');
+  wash.addColorStop(0.66, 'rgba(58,42,84,0.16)');
+  wash.addColorStop(0.91, 'rgba(52,38,80,0.30)');
+  wash.addColorStop(1.0, 'rgba(58,42,84,0.26)');
   ctx.globalCompositeOperation = 'source-atop';
-  ctx.fillStyle = fade;
-  ctx.fillRect(0, 0, width, height * 0.28);
+  ctx.fillStyle = wash;
+  ctx.fillRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Sun-lit crest: additive stroke whose alpha follows the cos falloff around
+  // the sun azimuth, so only the sun-facing quarter of the ring glows.
+  const rimAlphaAt = (u: number): number =>
+    Math.max(0, Math.cos(2 * Math.PI * (u - RING_SUN_U))) ** 1.6 * 0.85;
+  const rim = ctx.createLinearGradient(0, 0, TEXTURE_WIDTH, 0);
+  for (let s = 0; s <= 20; s++) {
+    const u = s / 20;
+    rim.addColorStop(u, hexToRgba(options.rimColor, rimAlphaAt(u)));
+  }
+
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.filter = 'blur(3px)';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = rim;
+  ctx.globalAlpha = options.rimStrength * 0.4;
+  ctx.beginPath();
+  for (const [x, y] of crest) ctx.lineTo(x, y);
+  ctx.stroke();
+
+  ctx.filter = 'blur(1px)';
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = options.rimStrength;
+  ctx.beginPath();
+  for (const [x, y] of crest) ctx.lineTo(x, y);
+  ctx.stroke();
+
+  ctx.globalAlpha = 1;
+  ctx.filter = 'none';
   ctx.globalCompositeOperation = 'source-over';
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
   return texture;
 }
 
-interface RidgeBandOptions {
-  /** Plane width in world units. */
-  width: number;
-  /** Plane height in world units, with its base resting at y = 0. */
-  height: number;
-  /** World Z position of the band. */
-  z: number;
-  /** Silhouette peak colour. */
-  color: string;
-  /** Haze colour used at the base and for the top fade. */
-  hazeColor: string;
-  /** Material opacity. */
-  opacity: number;
-  /** Deterministic peak profile. */
-  heights: readonly number[];
-}
-
-/** Builds a single ridge plane facing +Z toward the camera. */
-function createRidgeBand(options: RidgeBandOptions): {
+/** Builds one inward-facing cylinder ring of mountains. */
+function createRing(options: RingLayerOptions): {
   mesh: THREE.Mesh;
-  geometry: THREE.PlaneGeometry;
+  geometry: THREE.CylinderGeometry;
   texture: THREE.CanvasTexture;
 } {
-  const geometry = new THREE.PlaneGeometry(options.width, options.height);
-  const texture = createRidgeTexture({
-    peakColor: options.color,
-    hazeColor: options.hazeColor,
-    heights: options.heights,
-  });
+  const geometry = new THREE.CylinderGeometry(
+    options.radius,
+    options.radius,
+    options.height,
+    160,
+    1,
+    true,
+  );
+  const texture = createRingTexture(options);
 
   const material = new THREE.MeshBasicMaterial({
     map: texture,
@@ -108,58 +205,106 @@ function createRidgeBand(options: RidgeBandOptions): {
     opacity: options.opacity,
     depthWrite: false,
     fog: true,
-    side: THREE.DoubleSide,
+    side: THREE.BackSide,
   });
 
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.rotation.y = 0;
-  mesh.position.set(0, options.height / 2, options.z);
-  mesh.renderOrder = -1;
+  mesh.position.set(CENTER_X, options.height / 2, CENTER_Z);
+  mesh.renderOrder = options.renderOrder;
   mesh.castShadow = false;
   mesh.receiveShadow = false;
 
   return { mesh, geometry, texture };
 }
 
-/** Builds the layered exterior ridges with their owned resources. */
+const RING_LAYERS: ReadonlyArray<RingLayerOptions> = [
+  {
+    radius: 560,
+    height: 140,
+    peakColor: '#8a5f82',
+    hazeColor: '#e8b087',
+    rimColor: '#ffd2a0',
+    rimStrength: 0.5,
+    opacity: 0.94,
+    renderOrder: -30,
+    seed: 11,
+    octaves: [
+      [0.13, 2, 1.2],
+      [0.17, 5, 1.8],
+      [0.11, 11, 2.0],
+      [0.07, 23, 2.2],
+      [0.04, 47, 2.4],
+    ],
+  },
+  {
+    radius: 400,
+    height: 100,
+    peakColor: '#5a3d66',
+    hazeColor: '#c98a72',
+    rimColor: '#ffc188',
+    rimStrength: 0.75,
+    opacity: 0.96,
+    renderOrder: -20,
+    seed: 23,
+    octaves: [
+      [0.12, 3, 1.3],
+      [0.15, 7, 1.8],
+      [0.1, 15, 2.1],
+      [0.06, 31, 2.3],
+      [0.035, 61, 2.5],
+    ],
+  },
+  {
+    radius: 300,
+    height: 58,
+    peakColor: '#443354',
+    hazeColor: '#b08064',
+    rimColor: '#ffab66',
+    rimStrength: 1,
+    opacity: 1,
+    renderOrder: -10,
+    seed: 47,
+    octaves: [
+      [0.1, 4, 1.4],
+      [0.13, 9, 1.9],
+      [0.09, 19, 2.2],
+      [0.05, 41, 2.4],
+      [0.03, 83, 2.6],
+    ],
+  },
+];
+
+/** Builds the layered mountain rings plus the surrounding terrain disc. */
 export function createLandscape(): { group: THREE.Group; dispose: () => void } {
   const group = new THREE.Group();
   group.name = 'landscape';
 
-  const near = createRidgeBand({
-    width: 260,
-    height: 26,
-    z: -58,
-    color: '#465F78',
-    hazeColor: '#AFC2D2',
-    opacity: 0.88,
-    heights: [
-      0.16, 0.22, 0.34, 0.28, 0.4, 0.36, 0.5, 0.42, 0.55, 0.46, 0.6, 0.5, 0.42, 0.36, 0.44, 0.32,
-      0.27, 0.34, 0.24, 0.18,
-    ],
-  });
-
-  const far = createRidgeBand({
-    width: 420,
-    height: 46,
-    z: -105,
-    color: '#63809A',
-    hazeColor: '#C2D2DF',
-    opacity: 0.62,
-    heights: [
-      0.22, 0.3, 0.26, 0.38, 0.32, 0.46, 0.4, 0.52, 0.44, 0.56, 0.48, 0.62, 0.54, 0.46, 0.5, 0.4,
-      0.34, 0.42, 0.3, 0.24,
-    ],
-  });
-
-  group.add(near.mesh, far.mesh);
+  const rings = RING_LAYERS.map((options) => createRing(options));
+  group.add(...rings.map((ring) => ring.mesh));
   group.renderOrder = -1;
 
+  // Terrain disc under everything: dusk earth fading into the haze, so no
+  // sky-nadir seam shows between the apron edge and the mountains.
+  const groundGeometry = new THREE.CircleGeometry(760, 96);
+  groundGeometry.rotateX(-Math.PI / 2);
+  const groundMaterial = new THREE.MeshStandardMaterial({
+    color: 0x524052,
+    roughness: 0.95,
+    metalness: 0,
+  });
+  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  ground.position.set(CENTER_X, -0.04, CENTER_Z);
+  ground.receiveShadow = true;
+  group.add(ground);
+
   const dispose = (): void => {
-    near.geometry.dispose();
-    far.geometry.dispose();
-    near.texture.dispose();
-    far.texture.dispose();
+    for (const ring of rings) {
+      ring.geometry.dispose();
+      ring.texture.dispose();
+      (ring.mesh.material as THREE.Material).dispose();
+    }
+    groundGeometry.dispose();
+    groundMaterial.dispose();
   };
 
   return { group, dispose };
