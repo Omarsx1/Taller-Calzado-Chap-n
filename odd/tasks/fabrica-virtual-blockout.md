@@ -511,6 +511,24 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/calle_sur*.png`
 calle: aceras, franja táctil, línea amarilla, postes y cables contra el cielo) y
 `sunset_5_elevada.png` (vista aérea). Costura del cielo eliminada; líneas sobre su eje.
 
+## Work unit T16 — Carteles legibles (texto auto-ajustado, poste detrás)
+
+Authorized by user con dos capturas: el título "ALMACÉN DE PRODUCTO TERMINADO" se salía del
+tablero y un poste cruzaba por delante del texto. Not yet committed.
+
+- [x] **T16a — `proceduralTextures.ts`**: el título y el subtítulo de los carteles ahora
+  auto-ajustan su cuerpo (measureText + reducción progresiva hasta 436 px) en vez de usar
+  fuente fija de 26/14 px que desbordaba con títulos largos.
+- [x] **T16b — `WorkshopExpansion.ts`**: el panel del cartel se monta 11 cm delante del poste
+  (z=+0.11) — antes compartían eje y el poste (r=0.04 vs medio grosor 0.025) atravesaba la
+  cara del tablero mostrando un poste sobre el texto.
+
+### T16 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas de primer plano `.artifacts/logo-audit2/cartel_depot.png`
+y `cartel_qc.png`: título completo dentro del tablero, poste detrás del panel. Hook temporal
+removido (diff limpio en FactoryTourStage.ts).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
