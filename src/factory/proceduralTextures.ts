@@ -476,14 +476,25 @@ export function createSignboardTexture(
   ctx.lineWidth = 2;
   ctx.strokeRect(16, 32, 480, 208);
 
-  // Title text
+  // Title text — font auto-fits so long titles never overflow the board
   ctx.fillStyle = '#ffffff';
-  ctx.font = '900 26px sans-serif';
+  const maxWidth = 436;
+  let titleSize = 26;
+  ctx.font = `900 ${titleSize}px sans-serif`;
+  while (ctx.measureText(title.toUpperCase()).width > maxWidth && titleSize > 13) {
+    titleSize -= 1;
+    ctx.font = `900 ${titleSize}px sans-serif`;
+  }
   ctx.fillText(title.toUpperCase(), 36, 92);
 
-  // Subtitle text
+  // Subtitle text — same auto-fit treatment
   ctx.fillStyle = '#94a3b8';
-  ctx.font = '600 14px sans-serif';
+  let subtitleSize = 14;
+  ctx.font = `600 ${subtitleSize}px sans-serif`;
+  while (ctx.measureText(subtitle).width > maxWidth && subtitleSize > 10) {
+    subtitleSize -= 1;
+    ctx.font = `600 ${subtitleSize}px sans-serif`;
+  }
   ctx.fillText(subtitle, 36, 126);
 
   // Factory footer

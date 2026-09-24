@@ -374,7 +374,8 @@ function createIndustrialSignboard(
   post.position.y = 0.95;
   post.castShadow = true;
 
-  // Double-sided signboard panel
+  // Double-sided signboard panel, mounted just in front of the post so the
+  // upright never pokes through the board face
   const signTex = createSignboardTexture(title, subtitle, accentColor);
   const signMat = new THREE.MeshStandardMaterial({
     map: signTex,
@@ -387,7 +388,7 @@ function createIndustrialSignboard(
     new THREE.BoxGeometry(1.6, 0.85, 0.05),
     signMat,
   );
-  panel.position.y = 1.9;
+  panel.position.set(0, 1.9, 0.11);
   panel.castShadow = true;
 
   group.add(base, post, panel);
