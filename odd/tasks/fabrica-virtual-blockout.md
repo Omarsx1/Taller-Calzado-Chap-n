@@ -467,6 +467,27 @@ Command: `npm run build` -> success. Capturas `.artifacts/logo-audit2/colgante_*
 sobre la banda de ventanales, centrado en montante) y `audit_0_initial` (visible arriba al
 centro desde la vista inicial). `FactoryTourStage.ts` sin cambios netos (hook temporal removido).
 
+## Work unit T14 — Entorno exterior: parque, calles perimetrales y postes
+
+Authorized by user: "Mejora el exterior con three.js crea un parque y calles al rededor con
+postes." Not yet committed.
+
+- [x] **T14a — `src/factory/grounds.ts`** (nuevo, ~300 líneas): calles perimetrales (anillo de
+  4 tramos + 3 conectores) con líneas centrales discontinuas (textura dash repetida); parque al
+  sur y césped en los márgenes (6 rectángulos disjuntos con textura de pasto procedural);
+  senderos de gravilla; ~63 árboles y 9 bancas; 54 postes de luz con brazo, cabeza emisiva
+  cálida y charco de luz falso (círculo aditivo). Todo con InstancedMesh: árboles 3 draw calls,
+  postes 4, bancas 3; colocación determinista (mulberry32).
+- [x] **T14b — Cableado**: `FactoryTourStage.ts` agrega `createGrounds()` con dispose en el
+  teardown; `hall.ts` amplía el frustum de sombra ±140 → ±155 para cubrir las copas del
+  perímetro (texel 7.3 cm).
+
+### T14 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas elevadas/por zona en `.artifacts/sunset/` y
+`.artifacts/logo-audit/`: calles con líneas, árboles con sombras largas, postes encendidos,
+interior intacto (el parque se ve verde a través de los ventanales).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
