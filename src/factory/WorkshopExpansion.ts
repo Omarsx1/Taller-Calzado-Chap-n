@@ -472,8 +472,9 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
   group.add(textileRackA, textileRackB);
 
   // Staged wooden pallets with raw material bales and eco barrels
+  // (the -34 pallet sits 0.7 m east of the column at (-34.41, -5.62) to avoid clipping it)
   group.add(
-    createShoeBoxPallet(-34, -5.5, 3),
+    createShoeBoxPallet(-33.3, -5.5, 3),
     createRubberSlabPallet(-36, -2.5),
     createRubberSlabPallet(-36, 1.5),
     createShoeBoxPallet(-34, 4.5, 3),
@@ -593,13 +594,20 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
   // 2. Structural aluminum framing extrusions resting on wood dunnage
   const beamStack = new THREE.Group();
   beamStack.position.set(38, 0, -6.5);
+  const dunnageGeo = new THREE.BoxGeometry(0.15, 0.1, 1.2);
+  for (const dx of [-1.7, 1.7]) {
+    const timber = new THREE.Mesh(dunnageGeo, woodMat);
+    timber.position.set(dx, 0.05, 0);
+    timber.castShadow = true;
+    beamStack.add(timber);
+  }
   for (let layer = 0; layer < 4; layer++) {
     for (let col = 0; col < 3; col++) {
       const beam = new THREE.Mesh(
         new THREE.BoxGeometry(4.2, 0.1, 0.1),
         steelMat,
       );
-      beam.position.set(0, 0.1 + layer * 0.11, -0.3 + col * 0.3);
+      beam.position.set(0, 0.15 + layer * 0.11, -0.3 + col * 0.3);
       beam.castShadow = true;
       beamStack.add(beam);
     }
@@ -649,13 +657,16 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
     }
   }
 
-  // Fire safety stations on structural columns
-  const columnPositionsX = [-34.4, -26.7, -19.1, -11.5, 11.5, 19.1, 26.7, 34.4];
+  // Fire safety stations mounted flush on the structural columns. Column rows
+  // measured from the warehouse model: z = ±5.62, ~0.3 m square section, X grid
+  // every ~7.6 m — stations face the central walkway with their backing board
+  // touching the column face (±5.47).
+  const columnPositionsX = [-34.41, -26.83, -19.05, -11.47, 11.47, 19.05, 26.83, 34.41];
   for (const cx of columnPositionsX) {
     const fireStationNorth = createFireSafetyStation();
-    fireStationNorth.position.set(cx, 0, -7.8);
+    fireStationNorth.position.set(cx, 0, -5.45);
     const fireStationSouth = createFireSafetyStation();
-    fireStationSouth.position.set(cx, 0, 7.8);
+    fireStationSouth.position.set(cx, 0, 5.45);
     fireStationSouth.rotation.y = Math.PI;
     group.add(fireStationNorth, fireStationSouth);
   }
