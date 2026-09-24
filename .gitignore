@@ -5,6 +5,9 @@ node_modules/
 dist/
 .vite/
 
+# local verification artifacts (screenshots from scripts/verify_logos.mjs)
+.artifacts/
+
 # macOS
 .DS_Store
 
