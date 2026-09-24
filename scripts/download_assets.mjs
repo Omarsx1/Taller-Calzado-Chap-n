@@ -177,6 +177,36 @@ async function stepDownloadHDRI() {
 }
 
 /**
+ * Step 1b: Download 2K golden-hour "puresky" HDRI (real clouds + sun) used as
+ * the exterior sky dome, background and image-based lighting source.
+ */
+async function stepDownloadSkyHDRI() {
+  log.header('Paso 1b: Descarga y Validación de HDRI Puresky 2K (Poly Haven)');
+
+  const hdriId = 'industrial_sunset_puresky'; // Atardecer industrial con nubes
+  log.info(`Consultando Poly Haven API para "${hdriId}"...`);
+
+  const apiRes = await fetch(`https://api.polyhaven.com/files/${hdriId}`);
+  if (!apiRes.ok) {
+    throw new Error(`Error consultando Poly Haven API: ${apiRes.statusText}`);
+  }
+
+  const fileData = await apiRes.json();
+  const hdri2kInfo = fileData?.hdri?.['2k']?.hdr;
+
+  if (!hdri2kInfo?.url) {
+    throw new Error(`No se encontró URL para HDR 2K de ${hdriId}`);
+  }
+
+  const buffer = await downloadFile(hdri2kInfo.url, `HDRI Puresky 2K (${hdriId})`);
+  validateHDR(buffer, hdri2kInfo.md5);
+
+  const destPath = path.join(DIR_TEXTURES, 'golden_hour_puresky_2k.hdr');
+  fs.writeFileSync(destPath, buffer);
+  log.success(`HDRI guardado y verificado: ${path.relative(ROOT_DIR, destPath)} (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
+}
+
+/**
  * Step 2: Download PBR Textures (Concrete & Metal) from Poly Haven API
  */
 async function stepDownloadPBRTextures() {
@@ -328,6 +358,7 @@ async function main() {
     console.log('====================================================\x1b[0m');
 
     await stepDownloadHDRI();
+    await stepDownloadSkyHDRI();
     await stepDownloadPBRTextures();
     await stepDownload3DModels();
     stepReport();

@@ -13,7 +13,7 @@ import { createGrounds } from './grounds';
 import { createLandscape } from './landscape';
 import { uvStripMat } from './materials';
 import { loadShoeAssets } from './ShoeModels';
-import { createSkyTexture, disposeSkyTexture } from './sky';
+import { createSkySystem } from './sky';
 import { buildFactoryBranding } from './BrandingLogo';
 import { loadWarehouse } from './WarehouseLoader';
 import { buildWorkshopExpansion } from './WorkshopExpansion';
@@ -65,26 +65,26 @@ export function initFactoryTour(): () => void {
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.85;
+  renderer.toneMappingExposure = 0.7;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
 
-  const skyTexture = createSkyTexture();
-  scene.background = skyTexture;
-  scene.backgroundIntensity = 1.0;
-
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  const environment = pmremGenerator.fromEquirectangular(skyTexture).texture;
-  scene.environment = environment;
+  // Real HDR sky (Poly Haven puresky, CC0): background + image-based lighting,
+  // with the lens flare anchored to the actual sun detected in the HDR.
+  scene.background = new THREE.Color(0x9db4c8); // fallback until the HDR loads
+  const lighting = setupLighting(scene);
+  const skySystem = createSkySystem(scene, (sunDir) => {
+    lighting.key.position.copy(sunDir).multiplyScalar(300);
+  });
+  scene.add(skySystem.group);
   scene.environmentIntensity = 0.9;
-  pmremGenerator.dispose();
 
-  // Atmospheric perspective: the sunset haze swallows the mountain rings and
-  // the terrain disc while the full 93 m factory floor stays crisp.
-  scene.fog = new THREE.Fog(0xe9a873, 100, 900);
+  // Atmospheric perspective: dusk haze swallows the mountain rings and the
+  // terrain disc while the full 93 m factory floor stays crisp.
+  scene.fog = new THREE.Fog(0xe3c4a4, 100, 900);
 
   // near 0.2 buys ~2x depth precision at exterior distances so ground decals
   // never z-fight while orbiting
@@ -106,8 +106,6 @@ export function initFactoryTour(): () => void {
   controls.autoRotateSpeed = 0.55;
   controls.update();
   camera.lookAt(controls.target);
-
-  setupLighting(scene);
 
   const hall = createHall();
   scene.add(hall);
@@ -348,9 +346,8 @@ export function initFactoryTour(): () => void {
     });
     landscape.dispose();
     grounds.dispose();
+    skySystem.dispose();
     if (warehouseDisposer) warehouseDisposer();
-    disposeSkyTexture(skyTexture);
-    environment.dispose();
     renderer.dispose();
     delete canvas.dataset.ready;
   };

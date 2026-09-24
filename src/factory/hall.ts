@@ -104,16 +104,16 @@ export function createLedStrip(width: number): THREE.Mesh {
  * the rim-lit crests in `landscape.ts`. It sits far along the light direction
  * so the shadow frustum spans the 93 m building and its long evening shadows.
  */
-export function setupLighting(scene: THREE.Scene): void {
+export function setupLighting(scene: THREE.Scene): { key: THREE.DirectionalLight } {
   // Golden-hour hemisphere: amber sky dome over warm dusk ground bounce
-  const hemisphere = new THREE.HemisphereLight(0xff9a58, 0x463c50, 0.75);
+  const hemisphere = new THREE.HemisphereLight(0xff9a58, 0x463c50, 0.95);
 
   // Soft warm ambient fill lifts the long dusk shadows off pure black
-  const ambient = new THREE.AmbientLight(0xffdcc0, 0.38);
+  const ambient = new THREE.AmbientLight(0xffdcc0, 0.5);
 
   // Low sunset sun casting long shadows across the apron
   const key = new THREE.DirectionalLight(0xffa257, 1.8);
-  key.position.set(155, 78, -245);
+  key.position.set(146, 127, -230);
   key.castShadow = true;
   key.shadow.mapSize.set(4096, 4096);
   key.shadow.camera.left = -155;
@@ -137,6 +137,7 @@ export function setupLighting(scene: THREE.Scene): void {
   fillWarm.castShadow = false;
 
   scene.add(hemisphere, ambient, key, fillCool, fillWarm);
+  return { key };
 }
 
 /** Builds an architectural indoor planter with Sansevieria leaves */
