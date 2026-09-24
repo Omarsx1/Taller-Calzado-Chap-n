@@ -583,6 +583,24 @@ Command: `npm run build` -> success. Capturas `.artifacts/logo-audit/audit_*.png
 parque y calles intactos, interior luminoso con IBL real. `FactoryTourStage.ts` sin cambios
 netos de hooks.
 
+## Work unit T19 — Macetas fuera de columnas + columnas blancas
+
+Authorized by user con captura: macetas atravesadas por columnas, y columnas en blanco. Not yet
+committed.
+
+- [x] **T19a — Causa**: las macetas biológicas de `hall.ts` estaban en z=±5.6 — la MISMA hilera
+  que las columnas estructurales del modelo (z=±5.62, x=±3.89/±11.47/±19.05/±26.83/±34.41) — y
+  las de x=±4.5 caían encima de las columnas de ±3.89.
+- [x] **T19b — `hall.ts`**: macetas reubicadas en el centro de cada bahía estructural
+  (norte: x -30.62/-15.26/0/15.26/30.62; sur: -7.68/0/7.68) — ninguna intersecta una columna.
+- [x] **T19c — `WarehouseLoader.ts`**: el material `concrete` (columnas + banda baja de muro)
+  pasa a blanco mate 0xf6f4ef sin color map (mismo tratamiento que paredes/lámina en T12).
+
+### T19 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `audit_0_initial` y `audit_2_almacen_oeste`:
+columnas blancas, macetas libres entre columnas, interior blanco consistente.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
