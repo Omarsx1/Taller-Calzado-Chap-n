@@ -601,6 +601,22 @@ committed.
 Command: `npm run build` -> success. Capturas `audit_0_initial` y `audit_2_almacen_oeste`:
 columnas blancas, macetas libres entre columnas, interior blanco consistente.
 
+## Work unit T20 — Cielo HDR 4K nítido (kloofendal) + fondo con contraste
+
+Authorized by user: "el cielo no se ve real, necesito que sea 100% real". Not yet committed.
+
+- [x] **T20a — HDRI 4K**: golden_hour_puresky_2k.hdr (industrial_sunset 2K, nubes borrosas y
+  tono anublado) → kloofendal_48d_partly_cloudy_puresky 4K (20.7 MB, nubes nítidas, cielo azul
+  real). Poly Haven CC0. `scripts/download_assets.mjs` actualizado al 4K.
+- [x] **T20b — Presentación**: `scene.backgroundIntensity` 1.3 → 1.6 (el fondo HDR gana
+  contraste y saturación) y exposición 0.95.
+
+### T20 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `sunset_5_elevada.png` (vista aérea: nubes
+nítidas y cielo azul real sobre el sitio) y `audit_1_fachada.png`. El conjunto — calles, parque,
+edificio blanco, cielo fotográfico — se lee coherente y realista.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
