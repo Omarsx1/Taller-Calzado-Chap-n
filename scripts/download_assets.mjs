@@ -181,9 +181,9 @@ async function stepDownloadHDRI() {
  * the exterior sky dome, background and image-based lighting source.
  */
 async function stepDownloadSkyHDRI() {
-  log.header('Paso 1b: Descarga y Validación de HDRI Puresky 2K (Poly Haven)');
+  log.header('Paso 1b: Descarga y Validación de HDRI Puresky 4K (Poly Haven)');
 
-  const hdriId = 'industrial_sunset_puresky'; // Atardecer industrial con nubes
+  const hdriId = 'kloofendal_48d_partly_cloudy_puresky'; // Cielo azul con nubes
   log.info(`Consultando Poly Haven API para "${hdriId}"...`);
 
   const apiRes = await fetch(`https://api.polyhaven.com/files/${hdriId}`);
@@ -198,10 +198,16 @@ async function stepDownloadSkyHDRI() {
     throw new Error(`No se encontró URL para HDR 2K de ${hdriId}`);
   }
 
-  const buffer = await downloadFile(hdri2kInfo.url, `HDRI Puresky 2K (${hdriId})`);
+      const hdri4kInfo = fileData?.hdri?.['4k']?.hdr;
+
+  if (!hdri4kInfo?.url) {
+    throw new Error(`No se encontró URL para HDR 4K de ${hdriId}`);
+  }
+
+  const buffer = await downloadFile(hdri4kInfo.url, `HDRI Puresky 4K (${hdriId})`);
   validateHDR(buffer, hdri2kInfo.md5);
 
-  const destPath = path.join(DIR_TEXTURES, 'golden_hour_puresky_2k.hdr');
+  const destPath = path.join(DIR_TEXTURES, 'golden_hour_puresky_4k.hdr');
   fs.writeFileSync(destPath, buffer);
   log.success(`HDRI guardado y verificado: ${path.relative(ROOT_DIR, destPath)} (${(buffer.length / 1024 / 1024).toFixed(2)} MB)`);
 }

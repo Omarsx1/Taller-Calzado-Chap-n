@@ -65,7 +65,7 @@ export function initFactoryTour(): () => void {
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.7;
+  renderer.toneMappingExposure = 0.95;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -81,6 +81,7 @@ export function initFactoryTour(): () => void {
   });
   scene.add(skySystem.group);
   scene.environmentIntensity = 0.9;
+  scene.backgroundIntensity = 1.6; // el fondo HDR gana contraste y saturación
 
   // Atmospheric perspective: dusk haze swallows the mountain rings and the
   // terrain disc while the full 93 m factory floor stays crisp.

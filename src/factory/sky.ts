@@ -13,7 +13,7 @@ import { Lensflare, LensflareElement } from 'three/examples/jsm/objects/Lensflar
  * (key light, shadows) aligns with the sky's actual sun.
  */
 
-const HDRI_URL = '/assets/textures/golden_hour_puresky_2k.hdr'; // industrial_sunset_puresky (Poly Haven, CC0)
+const HDRI_URL = '/assets/textures/golden_hour_puresky_4k.hdr'; // kloofendal 48d partly cloudy (Poly Haven, CC0) // industrial_sunset_puresky (Poly Haven, CC0)
 const SUN_ANCHOR_DISTANCE = 1200;
 
 /** Soft main glare for the lens flare. */
