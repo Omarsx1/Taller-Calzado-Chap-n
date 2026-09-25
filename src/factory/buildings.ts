@@ -98,24 +98,25 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
 
   /* ------------------------------------------------ 2. Oficina de Gerencia */
 
-  // 10 x 5 m junto al estacionamiento, losa plana con pretil
-  box(10, 3.6, 5, -16, 1.8, 51.5, wallMat);
-  box(10.8, 0.18, 5.8, -16, 3.69, 51.5, roofMat);
-  // Ventanales hacia el parque (sur)
-  box(1.6, 0.9, 0.06, -18.8, 2.2, 54.06, glassMat);
-  box(1.6, 0.9, 0.06, -16, 2.2, 54.06, glassMat);
-  box(1.6, 0.9, 0.06, -13.2, 2.2, 54.06, glassMat);
-  // Puerta y rótulo hacia el estacionamiento (norte)
-  box(0.95, 2.1, 0.06, -13.5, 1.05, 48.94, doorMat);
-  sign('Oficina de Gerencia', 'Administración · Calzado Chapín', '#10b981', 2.6, -13.5, 2.9, 48.9);
+  // 10 x 5 m junto a la bodega (esquina SE), losa plana con pretil; puerta y
+  // ventanales hacia la calle sur — nunca tapa la fachada principal
+  box(10, 3.6, 5, 134, 1.8, 88, wallMat);
+  box(10.8, 0.18, 5.8, 134, 3.69, 88, roofMat);
+  // Ventanales hacia la calle sur
+  box(1.6, 0.9, 0.06, 131.2, 2.2, 90.56, glassMat);
+  box(1.6, 0.9, 0.06, 134, 2.2, 90.56, glassMat);
+  box(1.6, 0.9, 0.06, 136.8, 2.2, 90.56, glassMat);
+  // Puerta hacia el predio (oeste)
+  box(0.06, 2.1, 0.95, 128.94, 1.05, 88, doorMat);
 
   /* ------------------------------------------------------------ 3. Sanitarios */
 
-  // Bloque 4 x 3 m al borde norte del estacionamiento
-  box(4, 3, 3, -30, 1.5, 17.75, wallMat);
-  box(4.5, 0.14, 3.5, -30, 3.07, 17.75, roofMat);
-  box(0.9, 2, 0.05, -29.4, 1, 19.28, doorMat);
-  box(0.7, 0.4, 0.3, -30, 2.6, 16.4, doorMat);
+  // Bloque 4 x 3 m al borde norte del andén, extremo oeste (lejos del portón
+  // central y de la vista de fachada)
+  box(4, 3, 3, -54, 1.5, 17.75, wallMat);
+  box(4.5, 0.14, 3.5, -54, 3.07, 17.75, roofMat);
+  box(0.9, 2, 0.05, -53.4, 1, 19.28, doorMat);
+  box(0.7, 0.4, 0.3, -54, 2.6, 16.4, doorMat);
 
   const dispose = (): void => {
     group.traverse((object) => {
