@@ -9,7 +9,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
  */
 
 const MODEL_URL = '/harley_quinn.glb';
-const WALK_SPEED = 1.45;
+const WALK_SPEED = 0.9;
 const HEIGHT = 1.72;
 
 const ROUTE: ReadonlyArray<readonly [number, number]> = [
@@ -31,7 +31,7 @@ const BONE_KEYS = [
 
 interface BoneRef {
   bone: THREE.Bone;
-  restX: number;
+  restQ: THREE.Quaternion;
   restY: number;
 }
 
@@ -68,7 +68,7 @@ export function createHarleyWalker(scene: THREE.Scene): {
             for (const key of BONE_KEYS) {
               if (name.startsWith(key)) {
                 const bone = o as THREE.Bone;
-                bones.set(key, { bone, restX: bone.rotation.x, restY: bone.position.y });
+                bones.set(key, { bone, restQ: bone.quaternion.clone(), restY: bone.position.y });
                 break;
               }
             }
@@ -110,35 +110,31 @@ export function createHarleyWalker(scene: THREE.Scene): {
     group.rotation.y = Math.atan2(vx, vz);
     walked += WALK_SPEED * delta;
 
-    // Caminata procedural sobre el esqueleto
+    // Caminata procedural sobre el esqueleto: el swing se PRE-multiplica en el
+    // espacio del padre (eje lateral del modelo) — rotar sobre el eje local
+    // del hueso giraba la pierna sobre sí misma (pies tiesos, brazos en T).
     const f = walked * 2.3;
     const swing = Math.sin(f);
-    for (const [key, ref] of bones) {
-      const { bone, restX, restY } = ref;
-      switch (key) {
-        case 'thigh_l':
-          bone.rotation.x = restX + swing * 0.5;
-          break;
-        case 'thigh_r':
-          bone.rotation.x = restX - swing * 0.5;
-          break;
-        case 'calf_l':
-          bone.rotation.x = restX + Math.max(0, -swing) * 0.5;
-          break;
-        case 'calf_r':
-          bone.rotation.x = restX + Math.max(0, swing) * 0.5;
-          break;
-        case 'upperarm_l':
-          bone.rotation.x = restX - swing * 0.35;
-          break;
-        case 'upperarm_r':
-          bone.rotation.x = restX + swing * 0.35;
-          break;
-        case 'pelvis':
-          bone.position.y = restY + Math.abs(Math.cos(f)) * 0.05 * invScale;
-          break;
-      }
-    }
+    const qSwing = new THREE.Quaternion();
+    const AX_SIDE = new THREE.Vector3(1, 0, 0); // lateral del modelo (T-pose)
+    const AX_FWD = new THREE.Vector3(0, 0, 1); // frontal del modelo
+    const applySwing = (key: string, axis: THREE.Vector3, angle: number): void => {
+      const ref = bones.get(key);
+      if (!ref) return;
+      qSwing.setFromAxisAngle(axis, angle);
+      ref.bone.quaternion.copy(qSwing).multiply(ref.restQ);
+    };
+    // Piernas: zancada adelante/atrás en el plano sagital
+    applySwing('thigh_l', AX_SIDE, swing * 0.55);
+    applySwing('thigh_r', AX_SIDE, -swing * 0.55);
+    applySwing('calf_l', AX_SIDE, Math.max(0, -swing) * 0.6);
+    applySwing('calf_r', AX_SIDE, Math.max(0, swing) * 0.6);
+    // Brazos: bajar del T-pose (-/+1.1 rad sobre el eje frontal) + balanceo
+    applySwing('upperarm_l', AX_FWD, -1.1 + swing * 0.28);
+    applySwing('upperarm_r', AX_FWD, 1.1 - swing * 0.28);
+    // Pelvis: bob vertical (en unidades nativas del rig)
+    const pelvis = bones.get('pelvis');
+    if (pelvis) pelvis.bone.position.y = pelvis.restY + Math.abs(Math.cos(f)) * 0.05 * invScale;
   };
 
   const dispose = (): void => {
