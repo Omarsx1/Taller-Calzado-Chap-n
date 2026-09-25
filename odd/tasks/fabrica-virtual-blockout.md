@@ -663,6 +663,24 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/bodega_se.png` 
 la calle arborizada), `oficina_sanitarios.png` (sanitarios junto a la fachada) y
 `sunset_5_elevada.png` (conjunto del predio con el volumen nuevo).
 
+## Work unit T23 — Reubicación de oficina y sanitarios (tapaban la fachada)
+
+Authorized by user con captura: "Porque se ve esa vaina cubriendo" — la oficina de gerencia
+(10x5, en -16, 51.5) y el bloque de sanitarios (-30, 17.75) se interponían ante la fachada
+principal desde las vistas del estacionamiento. Not yet committed.
+
+- [x] **T23 — `buildings.ts`**: oficina reubicada junto a la bodega en el cuadrante SE
+  (134, 88) con puerta hacia el predio (oeste) y ventanales hacia la calle sur; sanitarios al
+  extremo oeste del andén (-54, 17.75), lejos del portón central. La fachada principal queda
+  completamente despejada. El velo oscuro sobre la banda izquierda es la puerta corrediza
+  cerrada del modelo (realista, se conserva).
+
+### T23 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/reloc_fachada.png` (fachada
+despejada desde el estacionamiento), `reloc_oficina_bodega.png` (oficina + bodega junto a la
+calle sur) y `reloc_sanitarios.png`. Hook temporal removido (diff limpio en FactoryTourStage.ts).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
