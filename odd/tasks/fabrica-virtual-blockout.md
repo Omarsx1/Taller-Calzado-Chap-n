@@ -696,6 +696,26 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/oficina_este.pn
 `oficina_contexto.png`: la oficina anexa al costado este, con rótulo y ventanales, sin tapar
 ningún elemento. Hook temporal removido (diff limpio en FactoryTourStage.ts).
 
+## Work unit T25 — Bodega anexa al oeste + oficina de vidrio con interior
+
+Authorized by user con dos capturas: "qué es ese edificio grande o como almacén que se ve al
+fondo porque no está al lado del taller" y "la oficina de gerencia debe verse más grande con
+vidrio y verse la oficina dentro". Not yet committed.
+
+- [x] **T25a — `buildings.ts`**: la bodega se mueve de la esquina SE (aislada, sin contexto) al
+  costado OESTE del taller: anexa al muro oeste (x -60.7..-42.7, 18x24 m), cumbrera 8.2 m, dos
+  puertas andenizadoras al sur con rótulo. El taller y la bodega leen como una sola planta.
+- [x] **T25b — Oficina de vidrio con interior**: crece a 8x14 m y sus muros pasan a vidrio
+  transparente (opacity 0.18) con columnas blancas; interior amueblado visible (escritorio,
+  monitor, dos sillas con respaldo, gabinete) — se ve la oficina desde fuera, como pedía.
+  Materiales nuevos: `officeGlassMat` (0.18) y piso claro.
+
+### T25 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/anexo_oeste.png` (bodega anexa
+al costado oeste con puertas y rótulo) y `oficina_vidrio.png` (oficina de vidrio con el interior
+amueblado visible). Hook temporal removido (diff limpio en FactoryTourStage.ts).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
