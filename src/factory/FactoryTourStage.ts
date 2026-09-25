@@ -19,6 +19,7 @@ import { buildFactoryBranding } from './BrandingLogo';
 import { loadWarehouse } from './WarehouseLoader';
 import { buildWorkshopExpansion } from './WorkshopExpansion';
 import { buildZones, updateWithRealShoes } from './zones';
+import { createHarleyWalker } from './harley';
 
 /**
  * Bootstrap for the standalone factory tour.
@@ -129,6 +130,8 @@ export function initFactoryTour(): () => void {
 
   const supportBuildings = createSupportBuildings();
   scene.add(supportBuildings.group);
+
+  const harley = createHarleyWalker(scene);
 
   let warehouseDisposer: (() => void) | null = null;
 
@@ -307,6 +310,8 @@ export function initFactoryTour(): () => void {
     if (flying) updateFly();
     else controls.update(delta);
 
+    harley.update(delta);
+
     hotspotLayer.update(occluders, isCameraInsideWorkshop());
 
     if (!visible || !pageVisible) return;
@@ -352,6 +357,7 @@ export function initFactoryTour(): () => void {
     landscape.dispose();
     grounds.dispose();
     supportBuildings.dispose();
+    harley.dispose();
     skySystem.dispose();
     if (warehouseDisposer) warehouseDisposer();
     renderer.dispose();
