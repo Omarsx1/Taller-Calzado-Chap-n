@@ -716,6 +716,27 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/anexo_oeste.png
 al costado oeste con puertas y rótulo) y `oficina_vidrio.png` (oficina de vidrio con el interior
 amueblado visible). Hook temporal removido (diff limpio en FactoryTourStage.ts).
 
+## Work unit T26 — Harley Quinn caminando por el exterior
+
+Authorized by user: "puedes poner este personaje que camine por fuera del taller harley_quinn.glb
+está en la carpeta public". Not yet committed.
+
+- [x] **T26a — `src/factory/harley.ts`** (nuevo): carga `public/harley_quinn.glb` (11.2 MB, rig
+  UE4 con skin, SIN clips de animación), normaliza la escala a 1.72 m de alto con los pies en
+  y=0, sombras, frustumCulled off (los skinned meshes calculan mal el bounds).
+- [x] **T26b — Caminata procedural sobre el esqueleto**: el GLB no trae clips — swing de
+  muslos/pantorrillas/brazos sobre los huesos (rest + seno a 2.3 pasos/m) y bob de pelvis
+  (escala nativa del rig via invScale). Ruta cerrada de 4 waypoints por la fachada y el
+  estacionamiento (x -26..36, z 17.4..25.5) a 1.45 m/s, orientación hacia el avance.
+- [x] **T26c — Cableado**: `FactoryTourStage.ts` crea el caminante, lo actualiza en el tick
+  (harley.update(delta)) y lo elimina en el teardown.
+
+### T26 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/harley_lateral.png` y
+`harley_lateral_2.png` (2.2 s aparte): el personaje avanza por la fachada, orientado al avance,
+zancada procedural visible, escala correcta frente a las puertas.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
