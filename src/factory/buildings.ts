@@ -98,16 +98,16 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
 
   /* ------------------------------------------------ 2. Oficina de Gerencia */
 
-  // 10 x 5 m junto a la bodega (esquina SE), losa plana con pretil; puerta y
-  // ventanales hacia la calle sur — nunca tapa la fachada principal
-  box(10, 3.6, 5, 134, 1.8, 88, wallMat);
-  box(10.8, 0.18, 5.8, 134, 3.69, 88, roofMat);
-  // Ventanales hacia la calle sur
-  box(1.6, 0.9, 0.06, 131.2, 2.2, 90.56, glassMat);
-  box(1.6, 0.9, 0.06, 134, 2.2, 90.56, glassMat);
-  box(1.6, 0.9, 0.06, 136.8, 2.2, 90.56, glassMat);
-  // Puerta hacia el predio (oeste)
-  box(0.06, 2.1, 0.95, 128.94, 1.05, 88, doorMat);
+  // Anexa al costado este del taller (muro este en x = 50.33): 5 m de fondo,
+  // 10 m de largo, losa plana con pretil; puerta y ventanales al sur
+  // (estacionamiento) y ventanales al este (calle)
+  box(5, 3.6, 10, 52.9, 1.8, 0, wallMat);
+  box(5.6, 0.18, 10.6, 52.9, 3.69, 0, roofMat);
+  box(0.06, 0.9, 1.6, 55.46, 2.2, -2, glassMat);
+  box(0.06, 0.9, 1.6, 55.46, 2.2, 2, glassMat);
+  box(1.6, 0.9, 0.06, 53.6, 2.2, 5.06, glassMat);
+  box(0.95, 2.1, 0.06, 51.5, 1.05, 5.03, doorMat);
+  sign('Oficina de Gerencia', 'Administración · Calzado Chapín', '#10b981', 2.6, 51.5, 3.0, 5.06);
 
   /* ------------------------------------------------------------ 3. Sanitarios */
 
