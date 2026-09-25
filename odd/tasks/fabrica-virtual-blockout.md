@@ -681,6 +681,21 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/reloc_fachada.p
 despejada desde el estacionamiento), `reloc_oficina_bodega.png` (oficina + bodega junto a la
 calle sur) y `reloc_sanitarios.png`. Hook temporal removido (diff limpio en FactoryTourStage.ts).
 
+## Work unit T24 — Oficina anexa al costado este del taller
+
+Authorized by user: "esa oficina puedes colocarla al costado del taller". Not yet committed.
+
+- [x] **T24 — `buildings.ts`**: la oficina de gerencia se mueve del cuadrante SE (junto a la
+  bodega) al costado ESTE del taller: anexa al muro este (x = 50.33), 5 m de fondo x 10 m de
+  largo (z -5..5), losa plana, puerta y ventanales al sur (estacionamiento) y ventanales al
+  este (calle), rótulo encima de la puerta. El muro este del taller (blanco) la enmarca.
+
+### T24 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/oficina_este.png` y
+`oficina_contexto.png`: la oficina anexa al costado este, con rótulo y ventanales, sin tapar
+ningún elemento. Hook temporal removido (diff limpio en FactoryTourStage.ts).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
