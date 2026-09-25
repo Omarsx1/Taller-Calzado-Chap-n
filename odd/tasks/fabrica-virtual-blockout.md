@@ -737,6 +737,28 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/harley_lateral.
 `harley_lateral_2.png` (2.2 s aparte): el personaje avanza por la fachada, orientado al avance,
 zancada procedural visible, escala correcta frente a las puertas.
 
+## Work unit T27 — Caminata natural (eje correcto + velocidad reducida)
+
+Authorized by user con captura y video: "se mueve de adelante hacia atrás con los brazos
+extendidos y los pies tiesos" + "reduce la velocidad de su movimiento y a partir de ahí el
+movimiento natural de su esqueleto". Not yet committed.
+
+- [x] **T27a — Causa raíz**: el modelo está en T-POSE y las rotaciones se aplicaban sobre el
+  eje LOCAL de cada hueso (que en este rig corre a lo largo del hueso) — girar la pierna sobre
+  sí misma: brazos extendidos, pies tiesos y vaivén corporal.
+- [x] **T27b — `harley.ts`**: swing PRE-multiplicado en el espacio del padre
+  (`bone.quaternion = qSwing × restQ`) sobre el eje lateral del modelo (X) — piernas en
+  zancada sagital real; brazos bajados del T-pose (-/+1.1 rad sobre el eje frontal) con
+  balanceo; bob de pelvis intacto. Velocidad 1.45 → 0.9 m/s.
+- [x] **T27c — Higiene**: eliminado un hook TEMP-AUDIT huérfano de un ciclo anterior (diff
+  limpio en FactoryTourStage.ts).
+
+### T27 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/paso_cerca_1.png` y
+`paso_cerca_2.png` (close-ups a velocidad 0.9): brazos colgando con balanceo, zancada en el
+plano sagital, sin pose T.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
