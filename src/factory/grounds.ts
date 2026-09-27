@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { darkSteelMat, woodMat } from './materials';
 
 /**
@@ -211,12 +212,35 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
     }
   }
 
-  // Grass: park + verge strips (disjoint rectangles tiling the apron margins)
+  // Grass: park + verge strips (disjoint rectangles tiling the apron margins).
+  // Textura procedural multi-tono y seamless — sin franjas ni parches grises.
+  const makeGrassTexture = (rx: number, ry: number): THREE.CanvasTexture => {
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('[factory] 2D canvas context unavailable for grass');
+    ctx.fillStyle = '#4f6034';
+    ctx.fillRect(0, 0, size, size);
+    const grng = mulberry32(0x6ea5);
+    for (let i = 0; i < 6200; i++) {
+      const x = grng() * size;
+      const y = grng() * size;
+      const l = 0.22 + grng() * 0.24;
+      ctx.fillStyle = `hsl(${76 + grng() * 24}, ${28 + grng() * 18}%, ${l * 100}%)`;
+      ctx.fillRect(x, y, 1.7, 2.8);
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(rx, ry);
+    return tex;
+  };
   const grassPatch = (w: number, d: number, x: number, z: number): void => {
-    // Tinte verde sobre la textura seca para leer como prado natural
-    const mat = pbrMaterial('aerial_grass_rock', w / 2.2, d / 2.2);
-    mat.color.set(0x9cb56e);
-    groundPlane(w, d, x, z, GRASS_Y, mat);
+    groundPlane(w, d, x, z, GRASS_Y, track(
+      new THREE.MeshStandardMaterial({ map: track(makeGrassTexture(w / 2.5, d / 2.5)), roughness: 1 }),
+    ));
   };
   grassPatch(216, 38, CENTER_X, 71); // south park
   grassPatch(240, 19, CENTER_X, 110); // south verge
@@ -228,6 +252,68 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
   // Walking paths through the green areas (gravel)
   groundPlane(200, 2.6, CENTER_X, 70, PATH_Y, pbrMaterial('gravel', 66, 0.9));
   groundPlane(200, 2.6, CENTER_X, -26, PATH_Y, pbrMaterial('gravel', 66, 0.9));
+
+  // Matas de pasto real (grass_lod.glb — 9436 hojas fusionadas en 2 mallas)
+  // repartidas por el parque: la textura base + matas 3D donde la cámara se
+  // acerca.
+  const tuftLoader = new GLTFLoader();
+  const tuftAnchor = new THREE.Group();
+  group.add(tuftAnchor);
+  tuftLoader.load('/assets/3d/grass_lod.glb', (gltf) => {
+    if (disposed) return;
+    gltf.scene.updateMatrixWorld(true);
+    const byMat = new Map<string, { geos: THREE.BufferGeometry[]; mat: THREE.Material }>();
+    gltf.scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || !m.geometry) return;
+      const mat = (Array.isArray(m.material) ? m.material[0] : m.material) as THREE.MeshStandardMaterial;
+      const key = mat?.name || 'grass';
+      const geo = m.geometry.clone().applyMatrix4(m.matrixWorld);
+      const entry = byMat.get(key) ?? { geos: [], mat };
+      entry.geos.push(geo);
+      byMat.set(key, entry);
+    });
+    const tuftPts: Array<[number, number]> = [];
+    for (let x = -92; x <= 102; x += 15) {
+      for (let z = 57; z <= 86; z += 15) {
+        if (Math.abs(z - 70) < 2.4) continue; // no sobre el sendero
+        tuftPts.push([x, z]);
+      }
+    }
+    for (let x = -92; x <= 102; x += 15) {
+      if (Math.abs(x - CENTER_X) > 8) continue;
+      tuftPts.push([x, -38]);
+    }
+    const instanced: THREE.InstancedMesh[] = [];
+    for (const { geos, mat } of byMat.values()) {
+      const merged = mergeGeometries(geos);
+      if (!merged) continue;
+      track(merged);
+      track(mat);
+      const inst = new THREE.InstancedMesh(merged, mat, tuftPts.length);
+      inst.castShadow = true;
+      tuftAnchor.add(inst);
+      instanced.push(inst);
+    }
+
+    const bboxH = (() => {
+      let h = 1;
+      gltf.scene.updateMatrixWorld(true);
+      const bb = new THREE.Box3().setFromObject(gltf.scene);
+      h = bb.max.y - bb.min.y || 1;
+      return h;
+    })();
+    const tuftScale = 0.26 / bboxH; // matas bajas de pasto (~26 cm)
+
+    tuftPts.forEach(([x, z], i) => {
+      const k = (0.8 + rng() * 0.5) * tuftScale;
+      quat.setFromEuler(euler.set(0, rng() * Math.PI * 2, 0));
+      pos.set(x, 0.02, z);
+      scl.set(k * 2.4, k, k * 2.4);
+      m4.compose(pos, quat, scl);
+      instanced.forEach((inst) => inst.setMatrixAt(i, m4));
+    });
+  }, undefined, () => console.warn('[factory] grass_lod.glb no cargó'));
 
   /* --------------------------------------------------------------- trees */
 
