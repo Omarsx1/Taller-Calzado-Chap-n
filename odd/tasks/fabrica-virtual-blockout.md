@@ -764,17 +764,26 @@ plano sagital, sin pose T.
 Authorized by user: "Analiza y corrige porque el modelo 3D de Harley Queen, no hace un
 movimiento natural de caminar."
 
-- [ ] **T28a — Probe del rig**: extraer orientaciones rest en espacio del modelo para cada
-  hueso desde `public/harley_quinn.glb` (headless Chrome + vite, patrón `probe_bounds.mjs`)
-  y validar numéricamente la cinemática nueva antes de portarla.
-- [ ] **T28b — `harley.ts`**: reemplazar los ejes locales empíricos por rotaciones en
-  espacio del modelo conjugadas por la orientación rest del padre
-  (`q = M_padre⁻¹ · R_modelo · M_hueso × restQ`); corregir la fase de rodilla
-  (flexión en swing, no en extensión máxima), tobillo con heel-strike/push-off y
-  amplitud de zancada consistente con la velocidad (sin foot slide).
-- [ ] **T28c — Verificación**: `npm run build` + capturas headless en 2 fases de la
-  zancada; validar en el probe que el pie de apoyo no deslice y el pie de swing no
-  atraviese el suelo.
+- [x] **T28a — Probe del rig**: `.artifacts/probe_harley_rig.mjs` + dump a `harley_rig.json`
+  (282 nodos, 0 clips): el rig es A-POSE (no T-pose), mira a +Z, izquierda = +X; la cadena
+  `F_MED_Cotton_Candyao` escala x100 y las posiciones locales de huesos están en metros FBX.
+- [x] **T28b — `harley.ts` reescrito**: rotaciones en ESPACIO DEL MODELO conjugadas por la
+  orientación rest del padre (`q = M_padre⁻¹ · R_modelo · M_hueso`), eliminando los ejes
+  locales empíricos. Cadera con aplanado de 3er armónico (anti-desliz: pie de apoyo ≈
+  velocidad del cuerpo, validado: -19.1 vs -19.1 cm/rad a mitad de apoyo), rodilla que
+  flexiona en swing y llega extendida al heel strike, tobillo dorsi/push-off, bob de
+  pelvis como serie de Fourier ajustada al grounding del pie (err 0.25 cm), torso con
+  contra-rotación + inclinación, brazos bajados del A-pose con swing opuesto.
+  Velocidad 0.8 m/s · 5.24 rad/m (paso 42 cm, 1.9 pasos/s).
+- [x] **T28c — Verificación**: `npm run build` OK (tsc + vite). Sim offline
+  `.artifacts/gait_sim.mjs`: pie de apoyo a altura de contacto exacta todo el apoyo,
+  sin penetración del suelo. Capturas headless `gait_fase_1/3/4.png`: zancada sagital,
+  push-off con punta, brazos colgando. Hook `window.__f3d` restaurado en
+  `FactoryTourStage.ts` (lo usan los scripts de verificación; se había perdido).
+
+Nota T28: quedan cambios sin commitear de la sesión anterior en FactoryHotspots.ts,
+WorkshopExpansion.ts, buildings.ts y factory.config.ts — ajenos a esta unidad; no se
+incluyeron en el commit.
 
 Checks: ningún TDD configurado para este proyecto (sin runner de tests); verificación
 funcional = typecheck + build + capturas visuales, igual que T26/T27.

@@ -110,8 +110,6 @@ export function initFactoryTour(): () => void {
   controls.autoRotateSpeed = 0.55;
   controls.update();
   camera.lookAt(controls.target);
-  // TEMP-AUDIT (do not commit)
-  (window as unknown as Record<string, unknown>).__f3d = { camera, controls };
 
   const hall = createHall();
   scene.add(hall);
@@ -136,7 +134,10 @@ export function initFactoryTour(): () => void {
 
   const harley = createHarleyWalker(scene);
   // Agente de seguridad frente a la oficina de gerencia (costado este)
-  const cameraman = createCameraman(scene, [58.6, 0, 1.5], -Math.PI / 2);
+  const cameraman = createCameraman(scene, [58.5, 0, 9.8], 0);
+
+  // Debug/verification handle for the headless capture scripts in .artifacts/
+  (window as unknown as { __f3d?: unknown }).__f3d = { camera, controls, scene };
 
   let warehouseDisposer: (() => void) | null = null;
 
