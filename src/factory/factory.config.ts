@@ -132,6 +132,16 @@ export const HOTSPOTS = [
     anchor: [36.0, 2.4, 0.0],
     view: { position: [30.0, 4.2, 8.5], target: [38.0, 1.5, 0.0] },
   },
+  {
+    id: 'furgoneta',
+    zone: 'panoramica',
+    eyebrow: 'Logística Exterior · Flota Limpia',
+    title: 'Furgoneta de Distribución y Despacho',
+    body: 'Unidad de reparto de la flota oficial de Calzado Chapín, estacionada en la bahía de carga exterior. Diseñada para distribución urbana eficiente y abastecimiento directo a tiendas sin embalajes plásticos descartables.',
+    meta: 'Logística de despacho circular · 100% libre de plásticos',
+    anchor: [-12.0, 2.1, 24.0],
+    view: { position: [-7.2, 2.4, 30.5], target: [-11.8, 1.1, 24.0] },
+  },
 ] as const satisfies readonly HotspotDef[];
 
 export const ZONE_VIEWS = {

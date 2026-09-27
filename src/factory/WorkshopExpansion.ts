@@ -18,6 +18,7 @@ import {
   woodMat,
 } from './materials';
 import { createSignboardTexture } from './proceduralTextures';
+import { createContactShadow } from './hall';
 
 /**
  * Full Workshop Expansion & Environment for Calzado Chapín:
@@ -758,15 +759,23 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
       });
     };
 
-    const [workbenchScene, tableScene, shelvesScene, machineGenericScene, machinePressScene, conveyorScene] =
-      await Promise.all([
-        loadOne('/assets/3d/workbench.glb'),
-        loadOne('/assets/3d/table_industrial.glb'),
-        loadOne('/assets/3d/shelves_rack.glb'),
-        loadOne('/assets/3d/machine_generic.glb'),
-        loadOne('/assets/3d/machine_press.glb'),
-        loadOne('/assets/3d/conveyor_belt.glb'),
-      ]);
+    const [
+      workbenchScene,
+      tableScene,
+      shelvesScene,
+      machineGenericScene,
+      machinePressScene,
+      conveyorScene,
+      vanScene,
+    ] = await Promise.all([
+      loadOne('/assets/3d/workbench.glb'),
+      loadOne('/assets/3d/table_industrial.glb'),
+      loadOne('/assets/3d/shelves_rack.glb'),
+      loadOne('/assets/3d/machine_generic.glb'),
+      loadOne('/assets/3d/machine_press.glb'),
+      loadOne('/assets/3d/conveyor_belt.glb'),
+      loadOne('/van_model.glb'),
+    ]);
 
     const configureShadows = (obj: THREE.Object3D) => {
       obj.traverse((child) => {
@@ -896,7 +905,55 @@ export function buildWorkshopExpansion(): WorkshopExpansionResult {
       group.add(heavyPress);
     }
 
-    console.log('[factory] Successfully integrated CC0 industrial GLB models across warehouse');
+    // 6. Delivery Cargo Van: Parked outside in the logistics parking bay
+    if (vanScene) {
+      configureShadows(vanScene);
+
+      const van = vanScene;
+      van.name = 'DeliveryVan_CalzadoChapin';
+      van.scale.setScalar(1.0);
+
+      // Parked in Bay 1 (West of main gate, X: -12, Z: 24)
+      // Backed into the bay towards the warehouse, front facing street/visitor (+Z)
+      van.position.set(-12.0, 0.02, 24.0);
+      van.rotation.y = -Math.PI / 2 + 0.06; // Aligns local +X (front) towards world +Z with subtle natural parking tilt
+
+      // Ground contact shadow under the vehicle tires
+      const vanShadow = createContactShadow(2.6, 5.2, 0.65);
+      vanShadow.position.set(-12.0, 0.025, 24.0);
+      group.add(vanShadow);
+
+      // Company branding decals on side panels
+      const textureLoader = new THREE.TextureLoader();
+      const vanLogoTex = textureLoader.load('/logo.webp');
+      vanLogoTex.colorSpace = THREE.SRGBColorSpace;
+
+      const vanLogoMat = new THREE.MeshStandardMaterial({
+        map: vanLogoTex,
+        transparent: true,
+        roughness: 0.35,
+        metalness: 0.1,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1,
+      });
+
+      // Right / Passenger side cargo door logo (local Z = +1.185)
+      const logoRight = new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.68), vanLogoMat);
+      logoRight.position.set(-0.45, 1.12, 1.188);
+      logoRight.rotation.y = 0;
+      van.add(logoRight);
+
+      // Left / Driver side cargo panel logo (local Z = -1.185)
+      const logoLeft = new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.68), vanLogoMat);
+      logoLeft.position.set(-0.45, 1.12, -1.188);
+      logoLeft.rotation.y = Math.PI;
+      van.add(logoLeft);
+
+      group.add(van);
+    }
+
+    console.log('[factory] Successfully integrated CC0 industrial GLB models and delivery van');
   };
 
   return { group, loadModels };

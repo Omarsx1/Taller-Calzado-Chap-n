@@ -134,7 +134,7 @@ export function initFactoryTour(): () => void {
 
   const harley = createHarleyWalker(scene);
   // Agente de seguridad frente a la oficina de gerencia (costado este)
-  const cameraman = createCameraman(scene, [58.5, 0, 9.8], 0);
+  const cameraman = createCameraman(scene, [61.8, 0, 9.6], 0.6);
 
   // Debug/verification handle for the headless capture scripts in .artifacts/
   (window as unknown as { __f3d?: unknown }).__f3d = { camera, controls, scene };

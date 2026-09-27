@@ -7,8 +7,8 @@ import { darkSteelMat, woodMat } from './materials';
  * Site grounds for the Calzado Chapín tour: perimeter streets with curbs,
  * raised sidewalks, tactile strips, yellow center + white edge lines, zebra
  * crossings, concrete utility poles with catenary power lines, street lamps
- * (emissive heads + fake light pools) and a park ring — grass, walking paths,
- * benches and trees — filling the margins around the 93 m building.
+ * (lamp.glb GLB streetlights + fake light pools) and a park ring — grass,
+ * walking paths, benches and trees — filling the margins around the 93 m building.
  *
  * Streets take after classic stylized street scenes: raised sidewalks with a
  * yellow tactile band, solid yellow center line, white edge lines and power
@@ -434,21 +434,8 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
     { x: 68, z: 44, rot: -Math.PI / 2 },
   );
 
-  const poleGeo = track(new THREE.CylinderGeometry(0.07, 0.1, 5.4, 8));
-  const armGeo = track(new THREE.BoxGeometry(0.07, 0.07, 1.2));
-  const headGeo = track(new THREE.BoxGeometry(0.52, 0.13, 0.24));
   const poolGeo = track(new THREE.CircleGeometry(3.4, 20));
   poolGeo.rotateX(-Math.PI / 2);
-  const poleMat = track(
-    new THREE.MeshStandardMaterial({ color: 0x2c3138, roughness: 0.55, metalness: 0.55 }),
-  );
-  const headMat = track(
-    new THREE.MeshStandardMaterial({
-      color: 0x333840,
-      emissive: 0xffd9a0,
-      emissiveIntensity: 2.4,
-    }),
-  );
   const poolTex = track(makePoolTexture());
   const poolMat = track(
     new THREE.MeshBasicMaterial({
@@ -460,31 +447,64 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
       opacity: 0.5,
     }),
   );
-
-  const poles = new THREE.InstancedMesh(poleGeo, poleMat, lampPts.length);
-  const arms = new THREE.InstancedMesh(armGeo, poleMat, lampPts.length);
-  const heads = new THREE.InstancedMesh(headGeo, headMat, lampPts.length);
   const pools = new THREE.InstancedMesh(poolGeo, poolMat, lampPts.length);
-  lampPts.forEach(({ x, z, rot }, i) => {
-    quat.setFromEuler(euler.set(0, rot, 0));
-    pos.set(x, 2.7, z);
-    scl.set(1, 1, 1);
-    m4.compose(pos, quat, scl);
-    poles.setMatrixAt(i, m4);
-    const ox = Math.sin(rot) * 0.45;
-    const oz = Math.cos(rot) * 0.45;
-    pos.set(x + ox, 5.3, z + oz);
-    m4.compose(pos, quat, scl);
-    arms.setMatrixAt(i, m4);
-    pos.set(x + Math.sin(rot) * 0.95, 5.24, z + Math.cos(rot) * 0.95);
-    m4.compose(pos, quat, scl);
-    heads.setMatrixAt(i, m4);
-    pos.set(x + Math.sin(rot) * 0.95, POOL_Y, z + Math.cos(rot) * 0.95);
-    m4.compose(pos, quat, scl);
-    pools.setMatrixAt(i, m4);
-  });
-  poles.castShadow = true;
-  group.add(poles, arms, heads, pools);
+
+  // Farolas reales (lamp.glb — poste tipo Medellín, 4.29 m nativos): una
+  // InstancedMesh por material del modelo. El GLB tiene el eje del poste
+  // desplazado del origen y cuelga a 0.37 del suelo (medido con
+  // .artifacts/probe_lamp.mjs), así que se recentra antes de instanciar.
+  // El brazo nativo apunta a ≈(+x, -z): LAMP_YAW0 lo lleva a +Z para que `rot`
+  // siga orientando el brazo hacia la calle como antes.
+  const LAMP_H = 5.4; // alto objetivo, equivalente al poste procedural
+  const LAMP_YAW0 = Math.PI + Math.atan2(0.44, 0.31); // arm (+0.44,-0.31) -> +Z
+  const lampLoader = new GLTFLoader();
+  lampLoader.load('/lamp.glb', (gltf) => {
+    if (disposed) return;
+    gltf.scene.updateMatrixWorld(true);
+    const byMat = new Map<string, { geos: THREE.BufferGeometry[]; mat: THREE.Material }>();
+    gltf.scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || !m.geometry) return;
+      const mat = (Array.isArray(m.material) ? m.material[0] : m.material) as THREE.MeshStandardMaterial;
+      // El export trae emissiveFactor [1,1,1] sin mapa: brillaría entero. Apagado.
+      if (mat?.emissive) mat.emissiveIntensity = 0;
+      const key = mat?.name || 'lamp';
+      const geo = m.geometry.clone().applyMatrix4(m.matrixWorld);
+      const entry = byMat.get(key) ?? { geos: [], mat };
+      entry.geos.push(geo);
+      byMat.set(key, entry);
+    });
+    const bb = new THREE.Box3().setFromObject(gltf.scene);
+    const k = LAMP_H / (bb.max.y - bb.min.y || 1);
+    for (const { geos, mat } of byMat.values()) {
+      const merged = mergeGeometries(geos);
+      if (!merged) continue;
+      merged.translate(-2.472, -bb.min.y, -0.768); // eje del poste al origen, base a y=0
+      track(merged);
+      track(mat);
+      const inst = new THREE.InstancedMesh(merged, mat, lampPts.length);
+      inst.castShadow = true;
+      lampPts.forEach(({ x, z, rot }, i) => {
+        quat.setFromEuler(euler.set(0, rot + LAMP_YAW0, 0));
+        m4.compose(pos.set(x, 0, z), quat, scl.set(k, k, k));
+        inst.setMatrixAt(i, m4);
+      });
+      inst.instanceMatrix.needsUpdate = true;
+      group.add(inst);
+    }
+    // Pools de luz bajo el brazo de cada farola
+    lampPts.forEach(({ x, z, rot }, i) => {
+      quat.setFromEuler(euler.set(0, 0, 0));
+      m4.compose(
+        pos.set(x + Math.sin(rot) * 0.95, POOL_Y, z + Math.cos(rot) * 0.95),
+        quat,
+        scl.set(1, 1, 1),
+      );
+      pools.setMatrixAt(i, m4);
+    });
+    pools.instanceMatrix.needsUpdate = true;
+  }, undefined, () => console.warn('[factory] lamp.glb no cargó'));
+  group.add(pools);
 
   /* --------------------------------------------- concrete utility poles */
 

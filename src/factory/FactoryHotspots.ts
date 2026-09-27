@@ -41,6 +41,7 @@ export class HotspotLayer {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'factory-hotspot';
+      button.dataset.hotspot = def.id;
       button.textContent = def.title;
       button.setAttribute('aria-label', `Ver información: ${def.title}`);
       button.hidden = true;
