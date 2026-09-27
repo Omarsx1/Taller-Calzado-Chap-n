@@ -188,18 +188,18 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
 
   /* ------------------------------------------------------------ 3. Sanitarios */
 
-  // Bloque 6 x 4 m pegado al COSTADO OESTE de la bodega (antes estaba frente a sus
-  // puertas andenizadoras, bloqueando la fachada sur). Más grande y con dos puertas
-  // al sur, hacia el andén: Mujeres (oeste) y Hombres (este), con rótulo individual.
-  box(6, 3.2, 4, -62.75, 1.6, 8, wallMat); // cuerpo (cara este a 0.05 del muro de la bodega)
-  box(4.3, 0.14, 4.6, -62.75, 3.27, 8, roofMat); // techo (alero solo en caras libres)
-  box(1.0, 2.2, 0.08, -64.1, 1.1, 10.05, doorMat); // puerta Mujeres
-  box(1.0, 2.2, 0.08, -61.4, 1.1, 10.05, doorMat); // puerta Hombres
-  sign('Mujeres', 'Sanitarios · Calzado Chapín', '#db2777', 1.1, -64.1, 2.72, 10.06);
-  sign('Hombres', 'Sanitarios · Calzado Chapín', '#2563eb', 1.1, -61.4, 2.72, 10.06);
-  // Vents altos en la cara oeste (hacia la calle perimetral)
-  box(0.05, 0.4, 0.7, -64.78, 2.5, 6.8, doorMat);
-  box(0.05, 0.4, 0.7, -64.78, 2.5, 9.2, doorMat);
+  // Dos bloques independientes en el estacionamiento (posición marcada por el
+  // usuario con cuadros rojos): Mujeres (oeste) y Hombres (este), puertas al
+  // sur con rótulo propio sobre cada una.
+  const restroom = (x: number, z: number, label: string, accent: string): void => {
+    box(4, 3, 3, x, 1.5, z, wallMat); // cuerpo
+    box(4.5, 0.14, 3.5, x, 3.07, z, roofMat); // techo
+    box(0.95, 2.1, 0.08, x, 1.05, z + 1.53, doorMat); // puerta al sur
+    box(0.7, 0.4, 0.3, x - 1.2, 2.55, z + 1.42, doorMat); // ventana alta
+    sign(label, 'Sanitarios · Calzado Chapín', accent, 1.4, x, 2.62, z + 1.56);
+  };
+  restroom(-22, 35, 'Sanitarios Mujeres', '#db2777');
+  restroom(26.5, 36, 'Sanitarios Hombres', '#2563eb');
 
   const dispose = (): void => {
     group.traverse((object) => {
