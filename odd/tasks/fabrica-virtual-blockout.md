@@ -926,4 +926,27 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/ventanal_sur.pn
 amueblado e iluminado visible a través del cristal) y `oficina_esquina.png` (rótulo bien
 compuesto y el agente apostado). Hook temporal removido.
 
+## Work unit T35 — Guardia sin atravesar la oficina + pie sin hiperdorsiflexión
+
+Authorized by the user: "se mete entre la pared de la oficina de gerencia y también sale de
+la pared, la puerta no está abierta y tiene como la punta del pie torcida hacia arriba".
+Not yet committed.
+
+- [x] **T35a — Patrulla fuera del casco** (`src/factory/cameraman.ts`): el tramo z = 6.5
+  corría DENTRO de la oficina (muro sur en z = 6.93, fachada cristal/puerta en z ≈ 7.06), así
+  que entraba por el ventanal (x = 56.2) y salía atravesando el muro junto a la puerta
+  (x = 60.8). Nueva patrulla z ∈ {7.7, 13.0}, x ∈ {56.2, 61.4}: toda al SUR de la fachada,
+  vigilando frente al cristal y la puerta sin cruzarlos.
+- [x] **T35b — Fases del tobillo corregidas**: los signos de `footT` estaban invertidos —
+  dorsiflexión en el impulso (punta visiblemente hacia arriba al despegar) y flexión plantar
+  en el vaivén (arrastre). Ahora: dorsiflexión (+ANKLE_DORSI) solo en el vaivén para librar
+  el suelo, y flexión plantar (−ANKLE_PUSH) en el impulso (sube el talón, baja la punta).
+
+### T35 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Corrección 1 verificada por geometría: oficina
+x 50.4..62.4, z ±6.93 (buildings.ts:112-131) contra la patrulla anterior y la nueva.
+Corrección 2 verificada por construcción: `footT` es el ángulo sagital ABSOLUTO del pie
+(compensa el delta del padre en la cadena), así que la fase y el signo quedan garantizados.
+
 ## Next step (actualizado)
