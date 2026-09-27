@@ -885,4 +885,24 @@ espacio y lo que si estés usando dejalo en public". Not yet committed.
 Command: `npm run build` -> success. Smoke test sin errores de consola: los ShoesL/R cargan
 desde `public/` (par terracota visible en la mesa del aparado).
 
+## Work unit T33 — Árboles reales en el parque (arbol_1.glb decimado e instanciado)
+
+Authorized by user: "reemplaza todos los arboles del parque con el arbol arbol_1.glb que
+tenemos en la carpeta public". Not yet committed.
+
+- [x] **T33a — Decimación**: arbol_1.glb (33.8 MB, 441K triángulos, 17 mallas, texturas
+  hoja/tronco) procesado con gltf-transform: dedup + weld + simplify (ratio 0.1, error 1.0) +
+  resize de texturas a 1024 → `public/assets/3d/arbol_1_lod.glb` (8.9 MB, 77K triángulos).
+  Sin el LOD, 61 árboles = 28M triángulos (injugable); con LOD, 4.7M.
+- [x] **T33b — `grounds.ts`**: los árboles procedurales (tronco + 4 blobs) se reemplazan por
+  el modelo real instanciado por partes — cada malla del GLB comparte geometría y material
+  entre los 61 árboles (~17 draw calls), con variación de escala (0.85-1.3) y rotación por
+  árbol, base apoyada en y=0. Sombra proyectada real de las copas.
+
+### T33 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/arboles_reales_1.png` (vista
+dentro del parque: hojas, ramas y troncos reales) y `arboles_reales_2.png` (vista aérea del
+predio completo con los árboles reales distribuidos).
+
 ## Next step (actualizado)
