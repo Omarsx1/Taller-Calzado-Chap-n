@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { darkSteelMat, woodMat } from './materials';
 
 /**
@@ -230,6 +231,17 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
 
   /* --------------------------------------------------------------- trees */
 
+  // Árboles reales: arbol_1_lod.glb (decimado con meshoptimizer a ~77K
+  // triángulos) instanciado por partes — cada malla del modelo comparte
+  // geometría y material entre los 61 árboles (unos 17 draw calls en total).
+  let disposed = false;
+  const treeM = new THREE.Matrix4();
+  const m4 = new THREE.Matrix4();
+  const quat = new THREE.Quaternion();
+  const euler = new THREE.Euler();
+  const pos = new THREE.Vector3();
+  const scl = new THREE.Vector3();
+
   const treePts: Array<[number, number]> = [];
   for (let x = -96; x <= 104; x += 16) treePts.push([x, 61]);
   for (let x = -88; x <= 112; x += 16) treePts.push([x, 80]);
@@ -238,55 +250,50 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
   for (let z = -80; z <= 80; z += 23) treePts.push([-126, z]);
   for (let z = -80; z <= 80; z += 23) treePts.push([134, z]);
 
-  const trunkGeo = track(new THREE.CylinderGeometry(0.13, 0.2, 2.6, 6));
-  const blobGeo = track(new THREE.IcosahedronGeometry(1.5, 1));
-  const trunkMat = track(new THREE.MeshStandardMaterial({ color: 0x4a3527, roughness: 1 }));
-  const leafMat = track(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 }));
+  const treeLoader = new GLTFLoader();
+  const treeAnchor = new THREE.Group();
+  treeAnchor.name = 'arboles';
+  group.add(treeAnchor);
+  treeLoader.load('/assets/3d/arbol_1_lod.glb', (gltf) => {
+    if (disposed) return;
+    const model = gltf.scene;
+    model.updateMatrixWorld(true);
+    const bbox0 = new THREE.Box3().setFromObject(model);
+    const size0 = new THREE.Vector3();
+    bbox0.getSize(size0);
+    const baseScale = 7.5 / (size0.y || 1); // altura objetivo ~7.5 m
+    const baseY = -bbox0.min.y; // base del tronco (unidades nativas)
 
-  const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, treePts.length);
-  const blobLow = new THREE.InstancedMesh(blobGeo, leafMat, treePts.length);
-  const blobMid = new THREE.InstancedMesh(blobGeo, leafMat, treePts.length);
-  const blobTop = new THREE.InstancedMesh(blobGeo, leafMat, treePts.length);
-  const blobWide = new THREE.InstancedMesh(blobGeo, leafMat, treePts.length);
-  trunks.castShadow = true;
-  blobLow.castShadow = true;
-  blobMid.castShadow = true;
-  blobTop.castShadow = true;
-  blobWide.castShadow = true;
-  const m4 = new THREE.Matrix4();
-  const quat = new THREE.Quaternion();
-  const euler = new THREE.Euler();
-  const pos = new THREE.Vector3();
-  const scl = new THREE.Vector3();
-  const col = new THREE.Color();
-  treePts.forEach(([x, z], i) => {
-    const k = 0.85 + rng() * 0.45;
-    euler.set(0, rng() * Math.PI * 2, 0);
-    quat.setFromEuler(euler);
-    pos.set(x, 1.3 * k, z);
-    scl.set(k, k, k);
-    m4.compose(pos, quat, scl);
-    trunks.setMatrixAt(i, m4);
-    pos.set(x + (rng() - 0.5) * 0.4, 2.95 * k, z + (rng() - 0.5) * 0.4);
-    m4.compose(pos, quat, scl);
-    blobLow.setMatrixAt(i, m4);
-    blobLow.setColorAt(i, col.setHSL(0.24 + rng() * 0.05, 0.3, 0.2 + rng() * 0.06));
-    pos.set(x + (rng() - 0.5) * 0.55, 3.45 * k, z + (rng() - 0.5) * 0.55);
-    m4.compose(pos, quat, scl);
-    blobMid.setMatrixAt(i, m4);
-    blobMid.setColorAt(i, col.setHSL(0.23 + rng() * 0.05, 0.29, 0.19 + rng() * 0.06));
-    pos.set(x + (rng() - 0.5) * 0.7, 3.95 * k, z + (rng() - 0.5) * 0.7);
-    m4.compose(pos, quat, scl);
-    blobTop.setMatrixAt(i, m4);
-    blobTop.setColorAt(i, col.setHSL(0.23 + rng() * 0.05, 0.28, 0.18 + rng() * 0.06));
-    pos.set(x + (rng() - 0.5) * 0.5, 2.6 * k, z + (rng() - 0.5) * 0.5);
-    scl.set(1.3 * k, 0.62 * k, 1.3 * k);
-    m4.compose(pos, quat, scl);
-    blobWide.setMatrixAt(i, m4);
-    blobWide.setColorAt(i, col.setHSL(0.24 + rng() * 0.05, 0.26, 0.17 + rng() * 0.05));
-    scl.set(k, k, k);
-  });
-  group.add(trunks, blobLow, blobMid, blobTop, blobWide);
+    const parts: Array<{ geo: THREE.BufferGeometry; mat: THREE.Material; local: THREE.Matrix4 }> = [];
+    model.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh && m.geometry) {
+        parts.push({ geo: m.geometry, mat: m.material as THREE.Material, local: m.matrixWorld.clone() });
+      }
+    });
+
+    const instanced = parts.map((part) => {
+      const inst = new THREE.InstancedMesh(part.geo, part.mat, treePts.length);
+      inst.castShadow = true;
+      inst.receiveShadow = true;
+      treeAnchor.add(inst);
+      track(part.geo);
+      track(part.mat);
+      return inst;
+    });
+
+    treePts.forEach(([x, z], i) => {
+      const k = 0.85 + rng() * 0.45;
+      quat.setFromEuler(euler.set(0, rng() * Math.PI * 2, 0));
+      pos.set(x, baseY * baseScale * k, z);
+      scl.set(baseScale * k, baseScale * k, baseScale * k);
+      treeM.compose(pos, quat, scl);
+      parts.forEach((part, p) => {
+        m4.multiplyMatrices(treeM, part.local);
+        instanced[p].setMatrixAt(i, m4);
+      });
+    });
+  }, undefined, () => console.warn('[factory] arbol_1_lod.glb no cargó'));
 
   /* ----------------------------------------------------------- benches */
 
@@ -482,6 +489,7 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
   /* ------------------------------------------------------------- teardown */
 
   const dispose = (): void => {
+    disposed = true;
     group.traverse((object) => {
       const mesh = object as THREE.Mesh;
       if (mesh.geometry) mesh.geometry.dispose();
