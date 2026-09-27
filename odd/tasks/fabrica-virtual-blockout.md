@@ -870,4 +870,19 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/oficina_amplia_
 rótulo proporcional sobre la puerta, ventanales con marco y vidrio, sin oficina huérfana
 detrás. Hook temporal removido (diff limpio en FactoryTourStage.ts).
 
+## Work unit T32 — Limpieza de la raíz del proyecto (liberar espacio)
+
+Authorized by user: "fíjate la raíz de este proyecto y elimina lo que no nos sirva para liberar
+espacio y lo que si estés usando dejalo en public". Not yet committed.
+
+- [x] **T32 — Eliminado**: `warehouse_3ds/` en la raíz (223 MB, entrega original NO usada —
+  la app carga desde `public/warehouse/`), los duplicados raíz `ShoesL.glb`/`ShoesR.glb`
+  (los usados viven en `public/`), 3 scratches SVG (2.2 MB), `.DS_Store` y el video de
+  referencia (8 MB, ya estudiado). Total liberado ~250 MB.
+
+### T32 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Smoke test sin errores de consola: los ShoesL/R cargan
+desde `public/` (par terracota visible en la mesa del aparado).
+
 ## Next step (actualizado)
