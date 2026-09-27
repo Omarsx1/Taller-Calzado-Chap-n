@@ -7,7 +7,7 @@ import { createSignboardTexture } from './proceduralTextures';
  * Support buildings attached to the sides of the main plant (white clean-tech
  * style): "Bodega" (18 x 24 m warehouse annexed to the west end), "Oficina de
  * Gerencia" (glass-walled office with furnished interior, annexed to the east
- * end) and "Sanitarios" (small block by the loading apron).
+ * end) and "Sanitarios" (two-door restroom block against the bodega's west wall).
  *
  * Positions use the measured site: main building x -42.68..50.33 / z ±15.77.
  */
@@ -188,12 +188,18 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
 
   /* ------------------------------------------------------------ 3. Sanitarios */
 
-  // Bloque 4 x 3 m al borde norte del andén, extremo oeste (lejos del portón
-  // central y de la vista de fachada)
-  box(4, 3, 3, -54, 1.5, 17.75, wallMat);
-  box(4.5, 0.14, 3.5, -54, 3.07, 17.75, roofMat);
-  box(0.9, 2, 0.05, -53.4, 1, 19.28, doorMat);
-  box(0.7, 0.4, 0.3, -54, 2.6, 16.4, doorMat);
+  // Bloque 6 x 4 m pegado al COSTADO OESTE de la bodega (antes estaba frente a sus
+  // puertas andenizadoras, bloqueando la fachada sur). Más grande y con dos puertas
+  // al sur, hacia el andén: Mujeres (oeste) y Hombres (este), con rótulo individual.
+  box(6, 3.2, 4, -62.75, 1.6, 8, wallMat); // cuerpo (cara este a 0.05 del muro de la bodega)
+  box(4.3, 0.14, 4.6, -62.75, 3.27, 8, roofMat); // techo (alero solo en caras libres)
+  box(1.0, 2.2, 0.08, -64.1, 1.1, 10.05, doorMat); // puerta Mujeres
+  box(1.0, 2.2, 0.08, -61.4, 1.1, 10.05, doorMat); // puerta Hombres
+  sign('Mujeres', 'Sanitarios · Calzado Chapín', '#db2777', 1.1, -64.1, 2.72, 10.06);
+  sign('Hombres', 'Sanitarios · Calzado Chapín', '#2563eb', 1.1, -61.4, 2.72, 10.06);
+  // Vents altos en la cara oeste (hacia la calle perimetral)
+  box(0.05, 0.4, 0.7, -64.78, 2.5, 6.8, doorMat);
+  box(0.05, 0.4, 0.7, -64.78, 2.5, 9.2, doorMat);
 
   const dispose = (): void => {
     group.traverse((object) => {
