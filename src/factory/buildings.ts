@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { darkSteelMat, woodMat } from './materials';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createSignboardTexture } from './proceduralTextures';
 
 /**
@@ -18,6 +18,7 @@ const DOOR_DARK = 0x3a4048;
 export function createSupportBuildings(): { group: THREE.Group; dispose: () => void } {
   const group = new THREE.Group();
   group.name = 'support_buildings';
+  let disposed = false;
   const disposables: Array<{ dispose(): void }> = [];
   const track = <T extends { dispose(): void }>(item: T): T => {
     disposables.push(item);
@@ -31,18 +32,6 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
   const doorMat = track(
     new THREE.MeshStandardMaterial({ color: DOOR_DARK, roughness: 0.6, metalness: 0.3 }),
   );
-  // Vidrio más transparente para la oficina: se ve el interior amueblado
-  const officeGlassMat = track(
-    new THREE.MeshStandardMaterial({
-      color: 0xbfd8e8,
-      transparent: true,
-      opacity: 0.18,
-      roughness: 0.05,
-      metalness: 0.1,
-      depthWrite: false,
-    }),
-  );
-
   const box = (
     w: number,
     h: number,
@@ -115,38 +104,39 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
 
   /* --------------------------------- 2. Oficina de Gerencia (costado este) */
 
-  // Anexo de vidrio en el costado este del taller (muro este en x = 50.33):
-  // 8 x 14 m con interior amueblado visible a través del vidrio
-  box(7.6, 0.12, 13.6, 54.2, 0.06, 0, track(
-    new THREE.MeshStandardMaterial({ color: 0xe8e4dc, roughness: 0.9 }),
-  ));
-  // Pared norte sólida
-  box(8, 3.6, 0.15, 54.2, 1.8, -6.93, wallMat);
-  // Muros de vidrio sur y este
-  box(7.7, 3.2, 0.06, 54.2, 2.0, 6.95, officeGlassMat);
-  box(0.06, 3.2, 13.8, 58.35, 2.0, 0, officeGlassMat);
-  // Columnas blancas
-  for (const [cx, cz] of [
-    [50.55, -6.9],
-    [50.55, 6.9],
-    [58.35, -6.9],
-    [58.35, 6.9],
-  ] as const) {
-    box(0.15, 3.6, 0.15, cx, 1.8, cz, wallMat);
-  }
-  // Losa plana
-  box(8.8, 0.18, 14.8, 54.2, 3.69, 0, roofMat);
-  // Puerta de vidrio al sur
-  box(0.95, 2.1, 0.06, 52.2, 1.05, 6.93, doorMat);
-
-  // Interior amueblado (visible a través del vidrio)
-  box(2.2, 0.9, 0.5, 52.4, 0.55, -5.9, woodMat); // gabinete contra el muro norte
-  box(1.9, 0.06, 0.9, 55.3, 0.78, 2.6, woodMat); // escritorio
-  box(0.55, 0.4, 0.04, 55.3, 1.05, 2.95, darkSteelMat); // monitor
-  box(0.5, 0.06, 0.5, 55.3, 0.45, 1.6, darkSteelMat); // silla 1
-  box(0.45, 0.55, 0.05, 55.3, 0.75, 1.35, darkSteelMat); // respaldo silla 1
-  box(0.5, 0.06, 0.5, 53.9, 0.45, 1.6, darkSteelMat); // silla 2
-  box(0.45, 0.55, 0.05, 53.9, 0.75, 1.35, darkSteelMat); // respaldo silla 2
+  // Modelo real oficina_texture_demo.glb (Poly Haven-style scan, CC0) anexado
+  // al muro este del taller, normalizado a ~3.2 m de alto. Al modelo le
+  // faltan techo y pared norte: se agregan aquí en blanco clean tech.
+  const officeLoader = new GLTFLoader();
+  const officeInner = new THREE.Group();
+  group.add(officeInner);
+  officeLoader.load('/oficina_texture_demo.glb', (gltf) => {
+    if (disposed) return;
+    const model = gltf.scene;
+    model.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh) {
+        m.castShadow = true;
+        m.receiveShadow = true;
+      }
+    });
+    const bbox0 = new THREE.Box3().setFromObject(model);
+    const size0 = new THREE.Vector3();
+    bbox0.getSize(size0);
+    const s = 3.2 / (size0.y || 1);
+    model.scale.setScalar(s);
+    officeInner.add(model);
+    // Reposicionar: oeste contra el muro este del taller, centrado en z
+    const bbox = new THREE.Box3().setFromObject(officeInner);
+    const size = new THREE.Vector3();
+    bbox.getSize(size);
+    officeInner.position.set(50.45 - bbox.min.x, -bbox.min.y, -(bbox.min.z + size.z / 2));
+    // Techo que le falta
+    const roof = box(size.x + 0.25, 0.16, size.z + 0.25, 50.45 + size.x / 2, 3.28, 0, roofMat);
+    roof.castShadow = true;
+    // Pared norte que le falta
+    box(size.x, 3.25, 0.12, 50.45 + size.x / 2, 1.625, -(size.z / 2) - 0.06, wallMat);
+  }, undefined, () => console.warn('[factory] oficina_texture_demo.glb no cargó'));
 
   /* ------------------------------------------------------------ 3. Sanitarios */
 

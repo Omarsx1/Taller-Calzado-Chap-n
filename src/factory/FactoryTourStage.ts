@@ -20,6 +20,7 @@ import { loadWarehouse } from './WarehouseLoader';
 import { buildWorkshopExpansion } from './WorkshopExpansion';
 import { buildZones, updateWithRealShoes } from './zones';
 import { createHarleyWalker } from './harley';
+import { createCameraman } from './cameraman';
 
 /**
  * Bootstrap for the standalone factory tour.
@@ -109,6 +110,8 @@ export function initFactoryTour(): () => void {
   controls.autoRotateSpeed = 0.55;
   controls.update();
   camera.lookAt(controls.target);
+  // TEMP-AUDIT (do not commit)
+  (window as unknown as Record<string, unknown>).__f3d = { camera, controls };
 
   const hall = createHall();
   scene.add(hall);
@@ -132,6 +135,8 @@ export function initFactoryTour(): () => void {
   scene.add(supportBuildings.group);
 
   const harley = createHarleyWalker(scene);
+  // Agente de seguridad frente a la oficina de gerencia (costado este)
+  const cameraman = createCameraman(scene, [58.6, 0, 1.5], -Math.PI / 2);
 
   let warehouseDisposer: (() => void) | null = null;
 
@@ -311,6 +316,7 @@ export function initFactoryTour(): () => void {
     else controls.update(delta);
 
     harley.update(delta);
+    cameraman.update(delta);
 
     hotspotLayer.update(occluders, isCameraInsideWorkshop());
 
@@ -358,6 +364,7 @@ export function initFactoryTour(): () => void {
     grounds.dispose();
     supportBuildings.dispose();
     harley.dispose();
+    cameraman.dispose();
     skySystem.dispose();
     if (warehouseDisposer) warehouseDisposer();
     renderer.dispose();
