@@ -114,27 +114,44 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
   ));
   box(12, 3.4, 0.15, 56.4, 1.7, -6.93, wallMat); // norte
   box(0.15, 3.4, 14, 62.33, 1.7, 0, wallMat); // este
-  box(12, 3.4, 0.15, 56.4, 1.7, 6.93, wallMat); // sur
-  box(1.05, 2.2, 0.08, 59.5, 1.1, 7.06, doorMat); // puerta
-  // Ventanales con marco blanco y vidrio (se ve el interior amueblado)
-  const windowGlassMat = track(
+  // Muro sur con vanos reales: ventana grande (x 51.75..58.65, y 1.1..3.0)
+  // y puerta (x 58.975..60.025, y 0..2.2)
+  box(1.35, 3.4, 0.15, 51.075, 1.7, 6.93, wallMat);
+  box(6.9, 1.1, 0.15, 55.2, 0.55, 6.93, wallMat); // antepecho
+  box(6.9, 0.4, 0.15, 55.2, 3.2, 6.93, wallMat); // dintel de la ventana
+  box(0.325, 3.4, 0.15, 58.81, 1.7, 6.93, wallMat); // pilar central
+  box(1.05, 1.2, 0.15, 59.5, 2.8, 6.93, wallMat); // dintel de la puerta
+  box(2.375, 3.4, 0.15, 61.21, 1.7, 6.93, wallMat);
+  // Ventanal grande de cristal claro: se ve el interior amueblado
+  const officeGlassMat = track(
     new THREE.MeshStandardMaterial({
-      color: 0xaac4d4,
+      color: 0xbfd8e8,
       transparent: true,
-      opacity: 0.28,
-      roughness: 0.08,
+      opacity: 0.12,
+      roughness: 0.04,
       metalness: 0.1,
       depthWrite: false,
     }),
   );
-  for (const wx of [52.9, 56.4]) {
-    box(1.9, 1.25, 0.1, wx, 2.05, 6.98, wallMat); // marco
-    box(1.6, 0.95, 0.06, wx, 2.05, 7.04, windowGlassMat); // vidrio
-  }
+  // Marco de 4 tiras alrededor del vano (sin losa trasera: a través del
+  // cristal se ve el interior iluminado)
+  box(7.2, 0.14, 0.12, 55.2, 3.04, 7.0, doorMat); // dintel del marco
+  box(7.2, 0.14, 0.12, 55.2, 1.02, 7.0, doorMat); // antepecho del marco
+  box(0.12, 2.16, 0.12, 51.72, 2.05, 7.0, doorMat); // jamba oeste
+  box(0.12, 2.16, 0.12, 58.68, 2.05, 7.0, doorMat); // jamba este
+  box(6.6, 1.6, 0.06, 55.2, 2.05, 7.06, officeGlassMat); // cristal
+  box(1.05, 2.2, 0.08, 59.5, 1.1, 7.06, doorMat); // puerta
+  // Rótulo sobre la puerta: separado de ella y del techo
+  sign('Oficina de Gerencia', 'Administración · Calzado Chapín', '#10b981', 1.8, 59.5, 2.85, 7.08);
   box(12.5, 0.16, 14.5, 56.4, 3.48, 0, roofMat); // losa plana
-  sign('Oficina de Gerencia', 'Administración · Calzado Chapín', '#10b981', 2.2, 59.5, 2.62, 7.04);
-  // Panel de luz interior (sobre el set del GLB, fuera de la línea de vista sur)
+  // Panel de luz interior sobre el set del GLB
   box(2.4, 0.04, 1.2, 55, 3.3, -3, emissivePanelMat);
+  // Luz real dentro de la oficina: el amueblado se ve a través del cristal
+  const officeLightA = new THREE.PointLight(0xfff0da, 55, 18, 2);
+  officeLightA.position.set(55, 2.9, -2.5);
+  const officeLightB = new THREE.PointLight(0xfff0da, 45, 18, 2);
+  officeLightB.position.set(57.5, 2.9, 3.5);
+  group.add(officeLightA, officeLightB);
 
   // El set amueblado real dentro del casco, apoyado contra el muro norte
   const officeLoader = new GLTFLoader();
@@ -158,7 +175,7 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
     officeInner.add(model);
     const bbox = new THREE.Box3().setFromObject(officeInner);
     // min.z (no max) contra el muro norte: el set queda DENTRO del casco
-    officeInner.position.set(50.7 - bbox.min.x, -bbox.min.y + 0.1, -6.7 - bbox.min.z);
+    officeInner.position.set(50.7 - bbox.min.x, -bbox.min.y + 0.1, 1.2 - bbox.max.z);
     // Escritorio de gerencia junto a los ventanales del sur
     const desk = box(1.9, 0.06, 0.9, 56.4, 0.78, 4.6, track(
       new THREE.MeshStandardMaterial({ color: 0x8a5f3c, roughness: 0.6 }),
