@@ -971,4 +971,25 @@ x -60.7..-42.7, z ±12 (buildings.ts:71); la franja oeste x -60.7..-105 no tiene
 mobiliario ni bahías (grounds.ts). Puertas en z = 10.05 miran al andén, junto a las puertas
 andenizadoras de la bodega (z = 12.06) sin bloquearlas.
 
+## Work unit T35 — Matas de pasto real (grass_lod) + textura procedural restaurada
+
+Authorized by user: "reemplaza el cesped o grass de todo el parque por grass.glb". Not yet
+committed.
+
+- [x] **T35a — Diagnóstico**: grass.glb = 9437 mallas de hojas (75.5K triángulos, parche
+  2x2 m) con textura de HOJA en macro (gradiente con venas) — tilearla como piso producía
+  las franjas de cultivo. Cobertura completa = millones de triángulos: inviable.
+- [x] **T35b — LOD**: `public/assets/3d/grass_lod.glb` (gltf-transform simplify ratio 0.3 →
+  37.7K tris) fusionado en 2 mallas (hojas + tierra) vía BufferGeometryUtils.
+- [x] **T35c — `grounds.ts`**: textura procedural del pasto restaurada (multi-tono,
+  seamless — reemplaza a aerial_grass_rock cuyos parches grises leían como plazas de
+  concreto) + ~60 matas de pasto real instanciadas (26 cm de alto) distribuidas por el
+  parque y el césped norte, evitando los senderos.
+
+### T35 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/pasto_parque.png`: el parque
+con matas de pasto real distribuidas sobre la textura base — ya no parece campo de maíz ni
+plazas de concreto.
+
 ## Next step (actualizado)
