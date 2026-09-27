@@ -849,4 +849,25 @@ evite la camioneta?"
   AJENA en curso en `src/factory/buildings.ts` (`darkSteelMat` sin definir, sesión
   concurrente T30+) — no se tocó; el cambio de ruta corrió verificado en el dev server.
 
+## Work unit T31 — Rótulo proporcional, ventanales de vidrio y set GLB dentro
+
+Authorized by user con dos capturas: el rótulo gigante chocaba con el borde del techo y
+cubría la puerta; los ventanales no se veían como vidrio; y la oficina del GLB quedaba
+huérfana sobresaliendo por detrás del casco. Not yet committed.
+
+- [x] **T31a — Rótulo**: 3.2x1.6 m → 2.2x1.1 m, reposicionado a y 2.62 (sobre la puerta,
+  bajo la losa, sin tocar el borde del techo).
+- [x] **T31b — Ventanales reales**: marco blanco + vidrio translúcido (0.28) por cada
+  vano — se ve el interior a través de ellos.
+- [x] **T31c — Oficina huérfana**: el set GLB se colocaba con `-6.7 - bbox.max.z`
+  (extendiéndose hasta z -12.8, tras el muro norte). Corregido a
+  `-6.7 - bbox.min.z` (dentro del casco). Añadido escritorio de gerencia con monitor
+  y silla junto a los ventanales del sur — se ve a través del vidrio.
+
+### T31 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/oficina_amplia_1/2.png`:
+rótulo proporcional sobre la puerta, ventanales con marco y vidrio, sin oficina huérfana
+detrás. Hook temporal removido (diff limpio en FactoryTourStage.ts).
+
 ## Next step (actualizado)
