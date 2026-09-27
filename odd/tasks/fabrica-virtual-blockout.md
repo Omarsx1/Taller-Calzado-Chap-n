@@ -759,6 +759,50 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/paso_cerca_1.pn
 `paso_cerca_2.png` (close-ups a velocidad 0.9): brazos colgando con balanceo, zancada en el
 plano sagital, sin pose T.
 
+## Work unit T28 — Corrección de caminata (ejes por datos, no empíricos)
+
+Authorized by user: "Analiza y corrige porque el modelo 3D de Harley Queen, no hace un
+movimiento natural de caminar."
+
+- [ ] **T28a — Probe del rig**: extraer orientaciones rest en espacio del modelo para cada
+  hueso desde `public/harley_quinn.glb` (headless Chrome + vite, patrón `probe_bounds.mjs`)
+  y validar numéricamente la cinemática nueva antes de portarla.
+- [ ] **T28b — `harley.ts`**: reemplazar los ejes locales empíricos por rotaciones en
+  espacio del modelo conjugadas por la orientación rest del padre
+  (`q = M_padre⁻¹ · R_modelo · M_hueso × restQ`); corregir la fase de rodilla
+  (flexión en swing, no en extensión máxima), tobillo con heel-strike/push-off y
+  amplitud de zancada consistente con la velocidad (sin foot slide).
+- [ ] **T28c — Verificación**: `npm run build` + capturas headless en 2 fases de la
+  zancada; validar en el probe que el pie de apoyo no deslice y el pie de swing no
+  atraviese el suelo.
+
+Checks: ningún TDD configurado para este proyecto (sin runner de tests); verificación
+funcional = typecheck + build + capturas visuales, igual que T26/T27.
+
+## Work unit T29 — Oficina real (GLB) + agente de seguridad animado
+
+Authorized by user: "reemplaza la oficina que tenemos actualmente por el modelo
+oficina_texture_demo.glb le colocas la pared y el techo que le faltan, y colocas a cameraman.glb
+fuera de la oficina como si fuera un agente de seguridad". Not yet committed.
+
+- [x] **T29a — `buildings.ts`**: la oficina de vidrio procedural se reemplaza por el modelo
+  `oficina_texture_demo.glb` (5x5x2.6 m nativo, normalizado a 3.2 m de alto) anexado al muro
+  este del taller (oeste contra x=50.45, centrado en z). Al modelo se le agregan lo que le
+  faltaba: **techo** losa blanca de 0.16 m y **pared norte** sólida — el muro oeste lo provee
+  el taller. Sombras y recepción de sombras en el modelo.
+- [x] **T29b — `src/factory/cameraman.ts`** (nuevo): agente de seguridad (`cameraman.glb`, rig
+  CICADA Bodyguard con clip "Animation") normalizado a 1.8 m, apostado frente a la oficina
+  (58.6, 0, 1.5) mirando al oeste, animación en loop vía AnimationMixer.
+- [x] **T29c — Cableado**: `FactoryTourStage.ts` crea el cameraman, lo actualiza en el tick y
+  lo elimina en el teardown. GLBs requeridos commiteados
+  (`public/oficina_texture_demo.glb`, `public/cameraman.glb`).
+
+### T29 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/oficina_exterior.png`: la
+oficina amueblada con techo y pared, y el agente animado frente a ella. Hook temporal removido
+(diff limpio en FactoryTourStage.ts).
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
