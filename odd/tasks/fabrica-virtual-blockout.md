@@ -992,4 +992,22 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/pasto_parque.pn
 con matas de pasto real distribuidas sobre la textura base — ya no parece campo de maíz ni
 plazas de concreto.
 
+## Work unit T36 — Dos baños separados (Mujeres / Hombres) en el estacionamiento
+
+Authorized by user con captura marcando 2 cuadros rojos en el estacionamiento: "crea 2 baños
+separados uno de mujeres y otro de hombres... Los puedes colocar donde te he dibujado esos 2
+cuadros rojos". Not yet committed.
+
+- [x] **T36 — `buildings.ts`**: el bloque único (que una sesión paralela había separado a dos
+  puertas contra la bodega) se reemplaza por DOS bloques independientes de 4x3x3 m en las
+  posiciones marcadas: Sanitarios Mujeres (rosa #db2777, oeste del estacionamiento, -22, 35) y
+  Sanitarios Hombres (azul #2563eb, este, 26.5, 36). Cada uno con puerta al sur, ventana alta,
+  techo con alero y rótulo propio sobre la puerta.
+
+### T36 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/banos_estacionamiento.png`
+(ambos bloques en el estacionamiento) y `banos_cerca.png` (rótulo propio sobre cada puerta).
+Hook temporal removido (diff limpio en FactoryTourStage.ts).
+
 ## Next step (actualizado)
