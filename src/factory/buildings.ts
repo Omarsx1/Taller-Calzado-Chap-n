@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { emissivePanelMat } from './materials';
+import { darkSteelMat, emissivePanelMat } from './materials';
 import { createSignboardTexture } from './proceduralTextures';
 
 /**
@@ -116,30 +116,25 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
   box(0.15, 3.4, 14, 62.33, 1.7, 0, wallMat); // este
   box(12, 3.4, 0.15, 56.4, 1.7, 6.93, wallMat); // sur
   box(1.05, 2.2, 0.08, 59.5, 1.1, 7.06, doorMat); // puerta
-  box(1.7, 1.1, 0.06, 53.4, 2.1, 7.03, track(
+  // Ventanales con marco blanco y vidrio (se ve el interior amueblado)
+  const windowGlassMat = track(
     new THREE.MeshStandardMaterial({
-      color: 0xbfd8e8,
+      color: 0xaac4d4,
       transparent: true,
-      opacity: 0.25,
-      roughness: 0.05,
+      opacity: 0.28,
+      roughness: 0.08,
       metalness: 0.1,
       depthWrite: false,
     }),
-  )); // ventanal 1 (vidrio: se ve el interior)
-  box(1.7, 1.1, 0.06, 56.4, 2.1, 7.03, track(
-    new THREE.MeshStandardMaterial({
-      color: 0xbfd8e8,
-      transparent: true,
-      opacity: 0.25,
-      roughness: 0.05,
-      metalness: 0.1,
-      depthWrite: false,
-    }),
-  )); // ventanal 2 (vidrio)
+  );
+  for (const wx of [52.9, 56.4]) {
+    box(1.9, 1.25, 0.1, wx, 2.05, 6.98, wallMat); // marco
+    box(1.6, 0.95, 0.06, wx, 2.05, 7.04, windowGlassMat); // vidrio
+  }
   box(12.5, 0.16, 14.5, 56.4, 3.48, 0, roofMat); // losa plana
-  sign('Oficina de Gerencia', 'Administración · Calzado Chapín', '#10b981', 3.2, 59.5, 2.9, 7.04);
-  // Panel de luz interior
-  box(2.4, 0.04, 1.2, 57.5, 3.3, 0, emissivePanelMat);
+  sign('Oficina de Gerencia', 'Administración · Calzado Chapín', '#10b981', 2.2, 59.5, 2.62, 7.04);
+  // Panel de luz interior (sobre el set del GLB, fuera de la línea de vista sur)
+  box(2.4, 0.04, 1.2, 55, 3.3, -3, emissivePanelMat);
 
   // El set amueblado real dentro del casco, apoyado contra el muro norte
   const officeLoader = new GLTFLoader();
@@ -162,7 +157,16 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
     model.scale.setScalar(s);
     officeInner.add(model);
     const bbox = new THREE.Box3().setFromObject(officeInner);
-    officeInner.position.set(50.7 - bbox.min.x, -bbox.min.y + 0.1, -6.7 - bbox.max.z);
+    // min.z (no max) contra el muro norte: el set queda DENTRO del casco
+    officeInner.position.set(50.7 - bbox.min.x, -bbox.min.y + 0.1, -6.7 - bbox.min.z);
+    // Escritorio de gerencia junto a los ventanales del sur
+    const desk = box(1.9, 0.06, 0.9, 56.4, 0.78, 4.6, track(
+      new THREE.MeshStandardMaterial({ color: 0x8a5f3c, roughness: 0.6 }),
+    ));
+    desk.castShadow = true;
+    box(0.6, 0.42, 0.04, 56.4, 1.05, 4.95, darkSteelMat); // monitor
+    box(0.5, 0.06, 0.5, 56.4, 0.45, 3.6, darkSteelMat); // silla
+    box(0.45, 0.55, 0.05, 56.4, 0.78, 3.38, darkSteelMat); // respaldo
   }, undefined, () => console.warn('[factory] oficina_texture_demo.glb no cargó'));
 
   /* ------------------------------------------------------------ 3. Sanitarios */
