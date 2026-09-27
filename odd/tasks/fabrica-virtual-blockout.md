@@ -949,4 +949,26 @@ x 50.4..62.4, z ±6.93 (buildings.ts:112-131) contra la patrulla anterior y la n
 Corrección 2 verificada por construcción: `footT` es el ángulo sagital ABSOLUTO del pie
 (compensa el delta del padre en la cadena), así que la fase y el signo quedan garantizados.
 
+## Work unit T36 — Sanitarios al costado oeste de la bodega, más grandes, 2 puertas
+
+Authorized by the user: "frente a la bodega hay un baño, puedes colocarlo al costado de la
+bodega y hacerlo más grande con 2 puertas una que indique mujeres y la otra hombres".
+Not yet committed.
+
+- [x] **T36a — Reubicación** (`src/factory/buildings.ts`): el bloque 4x3 m estaba FRENTE a
+  las puertas andenizadoras de la bodega (z = 17.75), bloqueando la fachada sur. Ahora va
+  pegado al costado oeste: x -64.75..-60.75 (a 0.05 del muro de la bodega, sin z-fighting),
+  z 6..10, junto al andén. Franja oeste libre verificada (calle perimetral en x ≈ -105).
+- [x] **T36b — Más grande, 2 puertas con rótulo**: bloque 6 x 4 m, alto 3.2 m; dos puertas
+  al sur (hacia el andén): Mujeres (#db2777, oeste) y Hombres (#2563eb, este) con rótulo
+  "Sanitarios · Calzado Chapín" sobre cada una; techo con alero solo en caras libres y dos
+  rejillas altas de ventilación en la cara oeste.
+
+### T36 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Colisiones descartadas por geometría: bodega
+x -60.7..-42.7, z ±12 (buildings.ts:71); la franja oeste x -60.7..-105 no tiene arbolado,
+mobiliario ni bahías (grounds.ts). Puertas en z = 10.05 miran al andén, junto a las puertas
+andenizadoras de la bodega (z = 12.06) sin bloquearlas.
+
 ## Next step (actualizado)
