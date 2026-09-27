@@ -905,4 +905,25 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/arboles_reales_
 dentro del parque: hojas, ramas y troncos reales) y `arboles_reales_2.png` (vista aérea del
 predio completo con los árboles reales distribuidos).
 
+## Work unit T34 — Muro sur con vanos reales + ventanal de cristal iluminado
+
+Authorized by user con captura: la ventana seguía sin leerse como vidrio (el muro sur sólido
+estaba DELANTE del cristal — a través del vidrio se veía el muro, no el interior) y el rótulo
+seguía mal compuesto. Not yet committed.
+
+- [x] **T34a — Muro sur con vanos reales**: el muro sólido se reemplaza por segmentos con dos
+  aberturas — ventana grande (x 51.75..58.65, y 1.1..3.0: antepecho, dintel y pilares) y
+  puerta (x 58.975..60.025 con dintel).
+- [x] **T34b — Ventanal de cristal**: marco oscuro de 4 tiras en el vano + cristal claro
+  (opacity 0.12) — a través de él se ve el interior ILUMINADO por dos PointLights cálidas
+  (55/57.5, 2.9, ±3.5): escritorio, sillas, gabinete y panel de luz en el techo.
+- [x] **T34c — Set GLB acercado**: el mueblado se centra en z ≈ 0.5 (antes en la mitad norte,
+  fuera del ángulo de la ventana) para verse por el ventanal.
+
+### T34 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/ventanal_sur.png` (el interior
+amueblado e iluminado visible a través del cristal) y `oficina_esquina.png` (rótulo bien
+compuesto y el agente apostado). Hook temporal removido.
+
 ## Next step (actualizado)
