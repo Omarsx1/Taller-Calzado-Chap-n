@@ -832,9 +832,21 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/oficina_amplia_
 oficina amplia con muros completos, rótulo, puerta y ventanales de vidrio; el panel de luz
 interior visible bajo el alero (correcto). Hook temporal removido.
 
-## Next step
+## Work unit T31 — Ruta de Harley sin colisionar con la furgoneta
 
-Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
-expansion framing, medallion placement and now the sunset grading), then T4: port
-`src/factory/*` into Calzado Chapín as `/fabrica` with lazy `import()` on viewport, sliced as
-chained PRs per zone.
+Authorized by user: "en su recorrido hay un momento cuando ya está cerca de llegar a su
+punto de partida en la que pasa por dentro de la camioneta estacionada, podemos hacer que
+evite la camioneta?"
+
+- [x] **T31a — Diagnóstico**: furgoneta en (-12, 24), huella z 21.4–26.6 (x -13.3..-10.7);
+  la pierna de retorno del ROUTE corría por z=26.0 → atravesaba su parte trasera.
+- [x] **T31b — `harley.ts`**: retorno elevado a z=28.4 (margen 1.8 m sobre la nariz),
+  esquinas (28,17.6)→(28,28.4)→(-24,28.4). La pierna oeste x=-24 queda fuera del rango
+  de la furgoneta. Solo cruza líneas de pintura del parking (sin geometría).
+- [x] **T31c — Verificación**: capturas trigger en vivo `.artifacts/sunset/van_pass_1/2/3.png`
+  (Chrome headless + `__f3d`): cruza el eje x de la furgoneta por z≈27.8–28.4, cuerpo
+  completo visible, sin intersección. NOTA: `npm run build` está rojo por una edición
+  AJENA en curso en `src/factory/buildings.ts` (`darkSteelMat` sin definir, sesión
+  concurrente T30+) — no se tocó; el cambio de ruta corrió verificado en el dev server.
+
+## Next step (actualizado)

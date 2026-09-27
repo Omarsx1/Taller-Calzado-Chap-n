@@ -22,11 +22,13 @@ const WALK_SPEED = 0.8; // m/s — matches ~1.9 steps/s at 42 cm step length
 const HEIGHT = 1.72; // target model height in meters
 const STRIDE_FREQUENCY = 5.24; // rad/m — stance ankle backward speed ≈ WALK_SPEED
 
+// Stroll loop: facade lane out, parking-lot lane back. The return leg runs at
+// z = 28.4 so it clears the delivery van parked at (-12, 24) (footprint z <= 26.6).
 const ROUTE: ReadonlyArray<readonly [number, number]> = [
   [-24, 17.6],
   [28, 17.6],
-  [28, 26.0],
-  [-24, 26.0],
+  [28, 28.4],
+  [-24, 28.4],
 ];
 
 // Model-space anatomical axes (model faces +Z, up +Y, left +X)
