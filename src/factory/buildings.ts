@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { emissivePanelMat } from './materials';
 import { createSignboardTexture } from './proceduralTextures';
 
 /**
@@ -104,9 +105,43 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
 
   /* --------------------------------- 2. Oficina de Gerencia (costado este) */
 
-  // Modelo real oficina_texture_demo.glb (Poly Haven-style scan, CC0) anexado
-  // al muro este del taller, normalizado a ~3.2 m de alto. Al modelo le
-  // faltan techo y pared norte: se agregan aquí en blanco clean tech.
+  // Oficina amplia construida alrededor del set amueblado
+  // oficina_texture_demo.glb: 12 x 14 m con muros completos (norte, este y
+  // sur con puerta y ventanales), losa plana y luz interior — el muro oeste
+  // lo provee el taller. El set del GLB se apoya contra el muro norte.
+  box(12, 0.1, 14, 56.4, 0.05, 0, track(
+    new THREE.MeshStandardMaterial({ color: 0xe8e4dc, roughness: 0.9 }),
+  ));
+  box(12, 3.4, 0.15, 56.4, 1.7, -6.93, wallMat); // norte
+  box(0.15, 3.4, 14, 62.33, 1.7, 0, wallMat); // este
+  box(12, 3.4, 0.15, 56.4, 1.7, 6.93, wallMat); // sur
+  box(1.05, 2.2, 0.08, 59.5, 1.1, 7.06, doorMat); // puerta
+  box(1.7, 1.1, 0.06, 53.4, 2.1, 7.03, track(
+    new THREE.MeshStandardMaterial({
+      color: 0xbfd8e8,
+      transparent: true,
+      opacity: 0.25,
+      roughness: 0.05,
+      metalness: 0.1,
+      depthWrite: false,
+    }),
+  )); // ventanal 1 (vidrio: se ve el interior)
+  box(1.7, 1.1, 0.06, 56.4, 2.1, 7.03, track(
+    new THREE.MeshStandardMaterial({
+      color: 0xbfd8e8,
+      transparent: true,
+      opacity: 0.25,
+      roughness: 0.05,
+      metalness: 0.1,
+      depthWrite: false,
+    }),
+  )); // ventanal 2 (vidrio)
+  box(12.5, 0.16, 14.5, 56.4, 3.48, 0, roofMat); // losa plana
+  sign('Oficina de Gerencia', 'Administración · Calzado Chapín', '#10b981', 3.2, 59.5, 2.9, 7.04);
+  // Panel de luz interior
+  box(2.4, 0.04, 1.2, 57.5, 3.3, 0, emissivePanelMat);
+
+  // El set amueblado real dentro del casco, apoyado contra el muro norte
   const officeLoader = new GLTFLoader();
   const officeInner = new THREE.Group();
   group.add(officeInner);
@@ -126,16 +161,8 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
     const s = 3.2 / (size0.y || 1);
     model.scale.setScalar(s);
     officeInner.add(model);
-    // Reposicionar: oeste contra el muro este del taller, centrado en z
     const bbox = new THREE.Box3().setFromObject(officeInner);
-    const size = new THREE.Vector3();
-    bbox.getSize(size);
-    officeInner.position.set(50.45 - bbox.min.x, -bbox.min.y, -(bbox.min.z + size.z / 2));
-    // Techo que le falta
-    const roof = box(size.x + 0.25, 0.16, size.z + 0.25, 50.45 + size.x / 2, 3.28, 0, roofMat);
-    roof.castShadow = true;
-    // Pared norte que le falta
-    box(size.x, 3.25, 0.12, 50.45 + size.x / 2, 1.625, -(size.z / 2) - 0.06, wallMat);
+    officeInner.position.set(50.7 - bbox.min.x, -bbox.min.y + 0.1, -6.7 - bbox.max.z);
   }, undefined, () => console.warn('[factory] oficina_texture_demo.glb no cargó'));
 
   /* ------------------------------------------------------------ 3. Sanitarios */
