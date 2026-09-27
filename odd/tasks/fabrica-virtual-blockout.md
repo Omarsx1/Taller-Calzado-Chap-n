@@ -803,6 +803,26 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/oficina_exterio
 oficina amueblada con techo y pared, y el agente animado frente a ella. Hook temporal removido
 (diff limpio en FactoryTourStage.ts).
 
+## Work unit T30 — Oficina amplia con muros completos y ventanales de vidrio
+
+Authorized by user: "la puerta de la oficina está pegada a la pared del taller, ahora mas bien
+quisiera saber si puedes hacer una oficina más grande más amplia y como ves en la imagen se ve
+que le faltan paredes". Not yet committed.
+
+- [x] **T30a — `buildings.ts`**: casco completo de 12x14x3.4 m alrededor del set amueblado
+  (oficina_texture_demo.glb apoyado contra el muro norte): piso, muros norte/este/sur, puerta
+  al centro-sur, dos ventanales de vidrio transparente (se ve el interior), losa plana,
+  rótulo "Oficina de Gerencia" sobre la puerta y panel de luz interior. La puerta ya no está
+  pegada al muro del taller (está al centro del muro sur).
+- [x] **T30b — `probe-harley-rig.ts`** (archivo temporal del usuario): fix mínimo de tipos
+  (animations en el tipo del GLTF) para no bloquear el typecheck — archivo sin commitear.
+
+### T30 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> success. Capturas `.artifacts/sunset/oficina_amplia_1/2.png`:
+oficina amplia con muros completos, rótulo, puerta y ventanales de vidrio; el panel de luz
+interior visible bajo el alero (correcto). Hook temporal removido.
+
 ## Next step
 
 Visual tuning pass with the user in the browser (T5 + T6 + T7 + T8: contrast, hotspot overlap,
