@@ -175,6 +175,11 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 6px 18px 6px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.22);
   pointer-events: auto;
 }
 
@@ -196,16 +201,21 @@ body {
 .topbar__brand {
   margin: 0;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
 .topbar__hint {
   margin: 0;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.22);
   font-size: 12px;
   font-weight: 500;
-  color: var(--obsidiana-suave);
+  color: var(--obsidiana);
 }
 
 /* ------------------------------------------------------------ nav de zonas */
@@ -388,8 +398,10 @@ body {
 }
 
 .btn-mode__icon {
-  font-size: 16px;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 /* ------------------------------------------------------------ character HUD */
@@ -631,4 +643,3 @@ body {
     transition: none;
   }
 }
-
