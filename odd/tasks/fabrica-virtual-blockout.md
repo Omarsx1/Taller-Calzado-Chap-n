@@ -1010,4 +1010,23 @@ Command: `npm run build` -> success. Capturas `.artifacts/sunset/banos_estaciona
 (ambos bloques en el estacionamiento) y `banos_cerca.png` (rótulo propio sobre cada puerta).
 Hook temporal removido (diff limpio en FactoryTourStage.ts).
 
+## Work unit T37 — Baños reubicados al andén frente a la bodega (puertas al norte)
+
+Authorized by user con captura marcando 2 cuadros rojos frente a la esquina suroeste de la
+bodega y flechas apuntando al norte: "Los baños están en el lugar incorrecto, colócalos donde
+te he dibujado los cuadros rojos y las puertas deben mirar hacia donde apuntan las flechas."
+
+- [x] **T37 — `buildings.ts`**: los dos bloques de T36 salen del estacionamiento
+  (-22, 35 / 26.5, 36) y se reubican sobre el andén frente a la bodega: Mujeres (-55, 31) y
+  Hombres (-45, 31), quedando libres las puertas andenizadoras (z = 12.06). Puerta, ventana
+  alta y rótulo pasan de la cara sur a la cara NORTE (z - 1.5x), mirando hacia la bodega,
+  según las flechas del usuario.
+
+### T37 verification evidence (orchestrator-run)
+
+Capturas headless contra vite en :5199 (`.artifacts/verify_banos2.mjs`):
+`banos_general.png` (ambos bloques frente a la bodega, andén despejado), `banos_frente.png`
+(vista desde el sur: caras ciegas, correcto), `banos_desde_bodega.png` (puertas, ventanas y
+rótulos Mujeres/Hombres mirando al norte hacia la bodega) y `banos_rasante.png`.
+
 ## Next step (actualizado)
