@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { darkSteelMat, woodMat } from './materials';
+import { darkSteelMat } from './materials';
 
 /**
  * Site grounds for the Calzado Chapín tour: perimeter streets with curbs,
@@ -253,68 +253,6 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
   groundPlane(200, 2.6, CENTER_X, 70, PATH_Y, pbrMaterial('gravel', 66, 0.9));
   groundPlane(200, 2.6, CENTER_X, -26, PATH_Y, pbrMaterial('gravel', 66, 0.9));
 
-  // Matas de pasto real (grass_lod.glb — 9436 hojas fusionadas en 2 mallas)
-  // repartidas por el parque: la textura base + matas 3D donde la cámara se
-  // acerca.
-  const tuftLoader = new GLTFLoader();
-  const tuftAnchor = new THREE.Group();
-  group.add(tuftAnchor);
-  tuftLoader.load('/assets/3d/grass_lod.glb', (gltf) => {
-    if (disposed) return;
-    gltf.scene.updateMatrixWorld(true);
-    const byMat = new Map<string, { geos: THREE.BufferGeometry[]; mat: THREE.Material }>();
-    gltf.scene.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (!m.isMesh || !m.geometry) return;
-      const mat = (Array.isArray(m.material) ? m.material[0] : m.material) as THREE.MeshStandardMaterial;
-      const key = mat?.name || 'grass';
-      const geo = m.geometry.clone().applyMatrix4(m.matrixWorld);
-      const entry = byMat.get(key) ?? { geos: [], mat };
-      entry.geos.push(geo);
-      byMat.set(key, entry);
-    });
-    const tuftPts: Array<[number, number]> = [];
-    for (let x = -92; x <= 102; x += 15) {
-      for (let z = 57; z <= 86; z += 15) {
-        if (Math.abs(z - 70) < 2.4) continue; // no sobre el sendero
-        tuftPts.push([x, z]);
-      }
-    }
-    for (let x = -92; x <= 102; x += 15) {
-      if (Math.abs(x - CENTER_X) > 8) continue;
-      tuftPts.push([x, -38]);
-    }
-    const instanced: THREE.InstancedMesh[] = [];
-    for (const { geos, mat } of byMat.values()) {
-      const merged = mergeGeometries(geos);
-      if (!merged) continue;
-      track(merged);
-      track(mat);
-      const inst = new THREE.InstancedMesh(merged, mat, tuftPts.length);
-      inst.castShadow = true;
-      tuftAnchor.add(inst);
-      instanced.push(inst);
-    }
-
-    const bboxH = (() => {
-      let h = 1;
-      gltf.scene.updateMatrixWorld(true);
-      const bb = new THREE.Box3().setFromObject(gltf.scene);
-      h = bb.max.y - bb.min.y || 1;
-      return h;
-    })();
-    const tuftScale = 0.26 / bboxH; // matas bajas de pasto (~26 cm)
-
-    tuftPts.forEach(([x, z], i) => {
-      const k = (0.8 + rng() * 0.5) * tuftScale;
-      quat.setFromEuler(euler.set(0, rng() * Math.PI * 2, 0));
-      pos.set(x, 0.02, z);
-      scl.set(k * 2.4, k, k * 2.4);
-      m4.compose(pos, quat, scl);
-      instanced.forEach((inst) => inst.setMatrixAt(i, m4));
-    });
-  }, undefined, () => console.warn('[factory] grass_lod.glb no cargó'));
-
   /* --------------------------------------------------------------- trees */
 
   // Árboles reales: arbol_1_lod.glb (decimado con meshoptimizer a ~77K
@@ -383,40 +321,74 @@ export function createGrounds(): { group: THREE.Group; dispose: () => void } {
 
   /* ----------------------------------------------------------- benches */
 
+  // Bancas reales de parque (banco.glb) instanciadas a lo largo de los senderos
   const benchPts: Array<[number, number, number]> = [];
-  for (let x = -84; x <= 96; x += 36) benchPts.push([x, 74.4, Math.PI]);
-  for (let x = -66; x <= 78; x += 36) benchPts.push([x, -30, 0]);
+  // Sendero sur del parque (z = 70.0)
+  for (let x = -88; x <= 96; x += 28) benchPts.push([x, 73.6, Math.PI / 2]); // Mirando al norte
+  for (let x = -74; x <= 82; x += 28) benchPts.push([x, 66.4, -Math.PI / 2]); // Mirando al sur
 
-  const seatGeo = track(new THREE.BoxGeometry(1.7, 0.05, 0.42));
-  const backGeo = track(new THREE.BoxGeometry(1.7, 0.4, 0.05));
-  const legGeo = track(new THREE.BoxGeometry(0.06, 0.46, 0.4));
-  const seats = new THREE.InstancedMesh(seatGeo, woodMat, benchPts.length);
-  const backs = new THREE.InstancedMesh(backGeo, woodMat, benchPts.length);
-  const legs = new THREE.InstancedMesh(legGeo, darkSteelMat, benchPts.length * 2);
-  seats.castShadow = true;
-  backs.castShadow = true;
-  legs.castShadow = true;
-  benchPts.forEach(([x, z, rot], i) => {
-    quat.setFromEuler(euler.set(0, rot, 0));
-    pos.set(x, 0.46, z);
-    scl.set(1, 1, 1);
-    m4.compose(pos, quat, scl);
-    seats.setMatrixAt(i, m4);
-    pos.set(x, 0.76, z);
-    quat.setFromEuler(euler.set(0, rot, -0.14));
-    m4.compose(pos, quat, scl);
-    backs.setMatrixAt(i, m4);
-    for (let l = 0; l < 2; l++) {
-      const side = l === 0 ? -0.72 : 0.72;
-      const ox = Math.cos(rot) * side;
-      const oz = -Math.sin(rot) * side;
-      quat.setFromEuler(euler.set(0, rot, 0));
-      pos.set(x + ox, 0.23, z + oz);
-      m4.compose(pos, quat, scl);
-      legs.setMatrixAt(i * 2 + l, m4);
-    }
-  });
-  group.add(seats, backs, legs);
+  // Sendero norte (z = -26.0)
+  for (let x = -72; x <= 78; x += 30) benchPts.push([x, -29.6, -Math.PI / 2]); // Mirando al sur
+  for (let x = -56; x <= 62; x += 30) benchPts.push([x, -22.4, Math.PI / 2]); // Mirando al norte
+
+  // Plazas laterales
+  benchPts.push([-22, 17.0, Math.PI / 2]);
+  benchPts.push([22, 17.0, -Math.PI / 2]);
+
+  const benchLoader = new GLTFLoader();
+  const benchAnchor = new THREE.Group();
+  benchAnchor.name = 'instanced_park_benches';
+  group.add(benchAnchor);
+
+  benchLoader.load(
+    '/banco.glb',
+    (gltf) => {
+      if (disposed) return;
+      gltf.scene.updateMatrixWorld(true);
+
+      const meshes: THREE.Mesh[] = [];
+      const fullBb = new THREE.Box3();
+
+      gltf.scene.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (m.isMesh && m.name !== 'Object_8' && m.geometry) {
+          meshes.push(m);
+          const bb = new THREE.Box3().setFromObject(m);
+          fullBb.union(bb);
+        }
+      });
+
+      const size = new THREE.Vector3();
+      fullBb.getSize(size);
+      const center = new THREE.Vector3();
+      fullBb.getCenter(center);
+      const s = 1.9 / Math.max(size.z, size.x);
+
+      meshes.forEach((m) => {
+        const geo = track(m.geometry.clone().applyMatrix4(m.matrixWorld));
+        geo.translate(-center.x, -fullBb.min.y, -center.z);
+        geo.scale(s, s, s);
+
+        const mat = (Array.isArray(m.material) ? m.material[0] : m.material) as THREE.Material;
+        track(mat);
+        const inst = new THREE.InstancedMesh(geo, mat, benchPts.length);
+        inst.castShadow = true;
+        inst.receiveShadow = true;
+
+        benchPts.forEach(([x, z, rot], i) => {
+          quat.setFromEuler(euler.set(0, rot, 0));
+          pos.set(x, 0, z);
+          scl.set(1, 1, 1);
+          m4.compose(pos, quat, scl);
+          inst.setMatrixAt(i, m4);
+        });
+        inst.instanceMatrix.needsUpdate = true;
+        benchAnchor.add(inst);
+      });
+    },
+    undefined,
+    () => console.warn('[factory] banco.glb no cargó'),
+  );
 
   /* ------------------------------------------------------- street lamps */
 

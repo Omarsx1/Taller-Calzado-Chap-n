@@ -188,19 +188,23 @@ export function createSupportBuildings(): { group: THREE.Group; dispose: () => v
 
   /* ------------------------------------------------------------ 3. Sanitarios */
 
-  // Dos bloques independientes sobre el andén, frente a la esquina suroeste de
-  // la bodega (posición marcada por el usuario con cuadros rojos): Mujeres
-  // (oeste) y Hombres (este), puertas al NORTE mirando a la bodega, con rótulo
-  // propio sobre cada una. Libres de las puertas andenizadoras (z = 12.06).
+  // Dos bloques independientes en el lugar de los cuadros dibujados en la explanada:
+  // Mujeres (rosa/magenta, z=29) y Hombres (azul, z=37), con puertas orientadas al ESTE
+  // (+X) mirando directamente hacia la camioneta estacionada (x=-12, z=24).
   const restroom = (x: number, z: number, label: string, accent: string): void => {
-    box(4, 3, 3, x, 1.5, z, wallMat); // cuerpo
-    box(4.5, 0.14, 3.5, x, 3.07, z, roofMat); // techo
-    box(0.95, 2.1, 0.08, x, 1.05, z - 1.53, doorMat); // puerta al norte (hacia la bodega)
-    box(0.7, 0.4, 0.3, x - 1.2, 2.55, z - 1.42, doorMat); // ventana alta
-    sign(label, 'Sanitarios · Calzado Chapín', accent, 1.4, x, 2.62, z - 1.56);
+    box(3, 3, 4, x, 1.5, z, wallMat); // cuerpo (3 m en X, 4 m en Z)
+    box(3.5, 0.14, 4.5, x, 3.07, z, roofMat); // techo con alero
+    box(0.08, 2.1, 0.95, x + 1.53, 1.05, z, doorMat); // puerta al ESTE (hacia la camioneta)
+    box(0.3, 0.4, 0.7, x + 1.42, 2.55, z - 1.2, doorMat); // ventana alta
+    const tex = track(createSignboardTexture(label, 'Sanitarios · Calzado Chapín', accent));
+    const mat = track(new THREE.MeshStandardMaterial({ map: tex, roughness: 0.4 }));
+    const sMesh = new THREE.Mesh(track(new THREE.BoxGeometry(0.08, (1.4 * 256) / 512, 1.4)), mat);
+    sMesh.position.set(x + 1.56, 2.62, z);
+    sMesh.castShadow = true;
+    group.add(sMesh);
   };
-  restroom(-55, 31, 'Sanitarios Mujeres', '#db2777');
-  restroom(-45, 31, 'Sanitarios Hombres', '#2563eb');
+  restroom(-84, 29, 'Sanitarios Mujeres', '#db2777');
+  restroom(-84, 37, 'Sanitarios Hombres', '#2563eb');
 
   const dispose = (): void => {
     group.traverse((object) => {

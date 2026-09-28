@@ -1029,4 +1029,22 @@ Capturas headless contra vite en :5199 (`.artifacts/verify_banos2.mjs`):
 (vista desde el sur: caras ciegas, correcto), `banos_desde_bodega.png` (puertas, ventanas y
 rótulos Mujeres/Hombres mirando al norte hacia la bodega) y `banos_rasante.png`.
 
+## Work unit T38 — Pasto real con `grass.glb` en todas las franjas verdes
+
+Authorized by user: "implementalo debemos usar grass real". Not yet committed.
+
+- [x] **T38a — `/grass.glb` directo**: `grounds.ts` ya no carga `grass_lod.glb`; carga
+  `/grass.glb`, extrae hojas individuales reales filtrando planos grandes de tierra y crea
+  hasta 4 plantillas instanciadas por altura.
+- [x] **T38b — Cobertura completa**: se siembra pasto real sobre las 6 franjas de
+  `grassPatch` (parque sur, franja sur, pradera norte, franja norte y márgenes oeste/este);
+  los senderos de gravilla sólo se excluyen en parque sur y pradera norte. Rollback boundary:
+  revertir `src/factory/grounds.ts` y esta entrada deja la siembra anterior sin tocar baños/árboles.
+
+### T38 verification evidence (orchestrator-run)
+
+Command: `npm run build` -> `tsc --noEmit` clean + `vite build` success (29 modules; warning
+preexistente de chunk >500 kB). El diff quedó limitado a `src/factory/grounds.ts` más esta
+entrada de documentación; no hay commit todavía.
+
 ## Next step (actualizado)

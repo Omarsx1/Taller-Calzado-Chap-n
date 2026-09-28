@@ -45,7 +45,7 @@ export const HOTSPOTS = [
   {
     id: 'telar',
     zone: 'textiles',
-    eyebrow: 'Zona A · Textiles y Corte',
+    eyebrow: 'Zona A · Caucho y Corte',
     title: 'Telar artesanal, volumen industrial',
     body: 'Los telares de pedal siguen operando dentro de la línea. Los tejidos típicos se producen aquí y se pagan por metro tejido, no por hora, para que el artesano pueda aumentar su ingreso sin aumentar su jornada.',
     meta: 'Comercio justo: pago por pieza, no por hora',
@@ -55,7 +55,7 @@ export const HOTSPOTS = [
   {
     id: 'troquel',
     zone: 'textiles',
-    eyebrow: 'Zona A · Textiles y Corte',
+    eyebrow: 'Zona A · Caucho y Corte',
     title: 'Troquelado sin desperdicio',
     body: 'La troqueladora lineal (Clicker) corta la lona de algodón con troqueles anidados por software. Cada centímetro del rollo se aprovecha antes de pasar a la siguiente pieza, así el recorte se reduce al mínimo y los sobrantes vuelven a la cadena como relleno de empaque.',
     meta: '0 % de plástico virgen · 100 % lona de algodón reciclable',

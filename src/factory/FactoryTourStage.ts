@@ -21,6 +21,8 @@ import { buildWorkshopExpansion } from './WorkshopExpansion';
 import { buildZones, updateWithRealShoes } from './zones';
 import { createHarleyWalker } from './harley';
 import { createCameraman } from './cameraman';
+import { createBattleBusFlyer } from './battleBus';
+import { CharacterController } from './CharacterController';
 
 /**
  * Bootstrap for the standalone factory tour.
@@ -48,6 +50,17 @@ export function initFactoryTour(): () => void {
   const panelClose = document.getElementById('factory-panel-close');
   const loading = document.getElementById('factory-loading');
   const zoneButtons = document.querySelectorAll<HTMLButtonElement>('.zonenav__btn[data-goto]');
+  const zonenav = document.getElementById('factory-zonenav');
+  const btnToggleCharacter = document.getElementById('btn-toggle-character');
+  const characterHud = document.getElementById('character-hud');
+  const hudBtnView = document.getElementById('hud-btn-view');
+  const hudViewLabel = document.getElementById('hud-view-label');
+  const hudBtnExit = document.getElementById('hud-btn-exit');
+  const touchOverlay = document.getElementById('character-touch-overlay');
+  const joystickZone = document.getElementById('touch-joystick-zone');
+  const joystickStick = document.getElementById('touch-joystick-stick');
+  const touchBtnSprint = document.getElementById('touch-btn-sprint');
+  const touchBtnJump = document.getElementById('touch-btn-jump');
 
   if (!(canvas instanceof HTMLCanvasElement) || !hotspotHost) {
     console.warn('[factory] required DOM nodes are missing; tour not started');
@@ -135,9 +148,194 @@ export function initFactoryTour(): () => void {
   const harley = createHarleyWalker(scene);
   // Agente de seguridad frente a la oficina de gerencia (costado este)
   const cameraman = createCameraman(scene, [61.8, 0, 9.6], 0.6);
+  // Battle Bus volando sobre el mapa
+  const battleBus = createBattleBusFlyer(scene);
+
+  // Modo de recorrido y controlador de personaje jugable
+  let tourMode: 'orbit' | 'character' = 'orbit';
+
+  const characterController = new CharacterController({
+    scene,
+    camera,
+    domElement: canvas,
+    initialPosition: [0, 0, 18],
+    onExit: () => setTourMode('orbit'),
+    onViewChange: (isFirstPerson) => {
+      if (hudViewLabel) {
+        hudViewLabel.textContent = isFirstPerson ? '1ª Persona' : '3ª Persona';
+      }
+    },
+  });
+
+  const topbarHint = document.querySelector<HTMLElement>('.topbar__hint');
+
+  function setTourMode(mode: 'orbit' | 'character'): void {
+    if (tourMode === mode) return;
+    tourMode = mode;
+
+    if (mode === 'character') {
+      flying = false;
+      controls.enabled = false;
+      controls.autoRotate = false;
+      stopNudge();
+
+      // Spawn player at comfortable position facing factory entrance
+      const spawnX = Math.max(-30, Math.min(30, camera.position.x * 0.4));
+      const spawnZ = Math.max(12, Math.min(26, camera.position.z * 0.4));
+      characterController.activate([spawnX, 0, spawnZ]);
+
+      if (btnToggleCharacter) {
+        btnToggleCharacter.setAttribute('aria-pressed', 'true');
+        const label = btnToggleCharacter.querySelector('.btn-mode__label');
+        if (label) label.textContent = 'Salir de Personaje';
+      }
+      if (topbarHint) {
+        topbarHint.textContent =
+          'Exploración libre · Usa W/A/S/D para moverte · Shift para correr · Espacio para saltar';
+      }
+      if (characterHud) characterHud.hidden = false;
+      if (zonenav) zonenav.hidden = true;
+      if (panel) panel.hidden = true;
+      if (hotspotHost) hotspotHost.style.display = 'none';
+
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      if (isTouch && touchOverlay) touchOverlay.hidden = false;
+    } else {
+      characterController.deactivate();
+      controls.enabled = true;
+
+      // Position orbit controls at character location
+      controls.target.set(characterController.position.x, 1.2, characterController.position.z);
+      camera.position.set(
+        characterController.position.x,
+        characterController.position.y + 5.5,
+        characterController.position.z + 12.0,
+      );
+      controls.update();
+
+      if (btnToggleCharacter) {
+        btnToggleCharacter.setAttribute('aria-pressed', 'false');
+        const label = btnToggleCharacter.querySelector('.btn-mode__label');
+        if (label) label.textContent = 'Modo Personaje';
+      }
+      if (topbarHint) {
+        topbarHint.textContent =
+          'Arrastra para rotar · Rueda para acercar · Clic en un punto para saber más';
+      }
+      if (characterHud) characterHud.hidden = true;
+      if (zonenav) zonenav.hidden = false;
+      if (touchOverlay) touchOverlay.hidden = true;
+      if (hotspotHost) hotspotHost.style.display = '';
+    }
+  }
+
+  btnToggleCharacter?.addEventListener(
+    'click',
+    () => {
+      setTourMode(tourMode === 'orbit' ? 'character' : 'orbit');
+    },
+    { signal },
+  );
+
+  hudBtnView?.addEventListener(
+    'click',
+    () => {
+      characterController.toggleViewMode();
+    },
+    { signal },
+  );
+
+  hudBtnExit?.addEventListener(
+    'click',
+    () => {
+      setTourMode('orbit');
+    },
+    { signal },
+  );
+
+  // Touch joystick handling for mobile/tablets
+  if (joystickZone && joystickStick) {
+    let touchId: number | null = null;
+    let centerX = 0;
+    let centerY = 0;
+    const maxRadius = 38;
+
+    joystickZone.addEventListener(
+      'touchstart',
+      (e: TouchEvent) => {
+        if (touchId !== null || e.changedTouches.length === 0) return;
+        const touch = e.changedTouches[0];
+        touchId = touch.identifier;
+        const rect = joystickZone.getBoundingClientRect();
+        centerX = rect.left + rect.width / 2;
+        centerY = rect.top + rect.height / 2;
+      },
+      { signal, passive: true },
+    );
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (touchId === null) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === touchId) {
+          let dx = touch.clientX - centerX;
+          let dy = touch.clientY - centerY;
+          const dist = Math.hypot(dx, dy);
+          if (dist > maxRadius) {
+            dx = (dx / dist) * maxRadius;
+            dy = (dy / dist) * maxRadius;
+          }
+          joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+          characterController.setJoystickInput(dx / maxRadius, dy / maxRadius);
+          break;
+        }
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (touchId === null) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === touchId) {
+          touchId = null;
+          joystickStick.style.transform = 'translate(0px, 0px)';
+          characterController.setJoystickInput(0, 0);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { signal, passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { signal });
+    window.addEventListener('touchcancel', handleTouchEnd, { signal });
+  }
+
+  let sprintTouchActive = false;
+  touchBtnSprint?.addEventListener(
+    'click',
+    () => {
+      sprintTouchActive = !sprintTouchActive;
+      characterController.setSprint(sprintTouchActive);
+      touchBtnSprint.classList.toggle('is-active', sprintTouchActive);
+    },
+    { signal },
+  );
+
+  touchBtnJump?.addEventListener(
+    'click',
+    () => {
+      characterController.triggerJump();
+    },
+    { signal },
+  );
 
   // Debug/verification handle for the headless capture scripts in .artifacts/
-  (window as unknown as { __f3d?: unknown }).__f3d = { camera, controls, scene };
+  (window as unknown as { __f3d?: unknown }).__f3d = {
+    camera,
+    controls,
+    scene,
+    characterController,
+    setTourMode,
+  };
 
   let warehouseDisposer: (() => void) | null = null;
 
@@ -313,13 +511,17 @@ export function initFactoryTour(): () => void {
     }
     uvStripMat.emissiveIntensity = 1.3 + Math.sin(elapsed * 2.4) * 0.35;
 
-    if (flying) updateFly();
-    else controls.update(delta);
+    if (tourMode === 'character') {
+      characterController.update(delta);
+    } else {
+      if (flying) updateFly();
+      else controls.update(delta);
+      hotspotLayer.update(occluders, isCameraInsideWorkshop());
+    }
 
     harley.update(delta);
     cameraman.update(delta);
-
-    hotspotLayer.update(occluders, isCameraInsideWorkshop());
+    battleBus.update(delta);
 
     if (!visible || !pageVisible) return;
 
@@ -350,6 +552,7 @@ export function initFactoryTour(): () => void {
     intersectionObserver.disconnect();
     hotspotLayer.dispose();
     controls.dispose();
+    characterController.dispose();
 
     scene.traverse((object) => {
       const mesh = object as THREE.Mesh;
@@ -366,9 +569,11 @@ export function initFactoryTour(): () => void {
     supportBuildings.dispose();
     harley.dispose();
     cameraman.dispose();
+    battleBus.dispose();
     skySystem.dispose();
     if (warehouseDisposer) warehouseDisposer();
     renderer.dispose();
     delete canvas.dataset.ready;
   };
 }
+

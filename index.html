@@ -28,17 +28,55 @@
         <p class="topbar__hint">
           Arrastra para rotar · Rueda para acercar · Clic en un punto para saber más
         </p>
+        <div class="topbar__actions">
+          <button id="btn-toggle-character" class="btn-mode" type="button" aria-pressed="false" title="Caminar libremente por la fábrica">
+            <span class="btn-mode__icon">🚶‍♂️</span>
+            <span class="btn-mode__label">Modo Personaje</span>
+          </button>
+        </div>
       </header>
 
-      <nav class="zonenav" aria-label="Ir a una estación de trabajo">
+      <nav class="zonenav" id="factory-zonenav" aria-label="Ir a una estación de trabajo">
         <button class="zonenav__btn" type="button" data-goto="panoramica">Vista Completa</button>
-        <button class="zonenav__btn" type="button" data-goto="almacen">Almacén y Lonas</button>
-        <button class="zonenav__btn" type="button" data-goto="textiles">Textiles y Corte</button>
+        <button class="zonenav__btn" type="button" data-goto="almacen">Almacén de Materias Primas</button>
+        <button class="zonenav__btn" type="button" data-goto="textiles">Caucho y Corte</button>
         <button class="zonenav__btn" type="button" data-goto="aparado">Aparado</button>
         <button class="zonenav__btn" type="button" data-goto="moldeado">Moldeado 3D</button>
         <button class="zonenav__btn" type="button" data-goto="empaque">Control y Empaque</button>
         <button class="zonenav__btn" type="button" data-goto="expansion">Fase 2 (Expansión)</button>
       </nav>
+
+      <!-- Character Mode HUD Overlay -->
+      <div id="character-hud" class="character-hud" hidden>
+        <div class="character-hud__badges">
+          <span class="hud-pill"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Moverse</span>
+          <span class="hud-pill"><kbd>Shift</kbd> Correr</span>
+          <span class="hud-pill"><kbd>Espacio</kbd> Saltar</span>
+          <span class="hud-pill"><kbd>V</kbd> 1ª/3ª Persona</span>
+          <span class="hud-pill">Mouse: Girar cámara</span>
+        </div>
+        <div class="character-hud__actions">
+          <button id="hud-btn-view" class="hud-btn" type="button" title="Alternar Vista 1ª / 3ª persona">
+            📷 <span id="hud-view-label">3ª Persona</span>
+          </button>
+          <button id="hud-btn-exit" class="hud-btn hud-btn--exit" type="button" title="Salir a Modo Órbita (Esc)">
+            ✕ Salir (<kbd>Esc</kbd>)
+          </button>
+        </div>
+      </div>
+
+      <!-- Touch Controls for Mobile / Tablets -->
+      <div id="character-touch-overlay" class="character-touch-overlay" hidden>
+        <div id="touch-joystick-zone" class="touch-joystick-zone">
+          <div id="touch-joystick-base" class="touch-joystick-base">
+            <div id="touch-joystick-stick" class="touch-joystick-stick"></div>
+          </div>
+        </div>
+        <div class="touch-actions">
+          <button id="touch-btn-sprint" class="touch-btn touch-btn--sprint" type="button">⚡ Correr</button>
+          <button id="touch-btn-jump" class="touch-btn touch-btn--jump" type="button">⬆ Saltar</button>
+        </div>
+      </div>
 
       <aside id="factory-panel" class="panel" hidden>
         <button id="factory-panel-close" class="panel__close" type="button" aria-label="Cerrar">
