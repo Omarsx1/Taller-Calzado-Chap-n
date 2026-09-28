@@ -190,8 +190,8 @@ export function initFactoryTour(): () => void {
         if (label) label.textContent = 'Salir de Personaje';
       }
       if (topbarHint) {
-        topbarHint.textContent =
-          'Exploración libre · Usa W/A/S/D para moverte · Shift para correr · Espacio para saltar';
+        // The bottom HUD already lists the controls, so the header hint is hidden.
+        topbarHint.hidden = true;
       }
       if (characterHud) characterHud.hidden = false;
       if (zonenav) zonenav.hidden = true;
@@ -219,8 +219,7 @@ export function initFactoryTour(): () => void {
         if (label) label.textContent = 'Modo Personaje';
       }
       if (topbarHint) {
-        topbarHint.textContent =
-          'Arrastra para rotar · Rueda para acercar · Clic en un punto para saber más';
+        topbarHint.hidden = false;
       }
       if (characterHud) characterHud.hidden = true;
       if (zonenav) zonenav.hidden = false;
@@ -576,4 +575,3 @@ export function initFactoryTour(): () => void {
     delete canvas.dataset.ready;
   };
 }
-
